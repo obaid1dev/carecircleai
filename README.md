@@ -45,12 +45,6 @@ npm run dev
 
 You'll need a `.env` file with your Supabase and AI API keys — see `.env.example`.
 
-## Roadmap
-
-- [ ] Voice-based check-ins via phone call
-- [ ] Multi-caregiver permissions (siblings, in-home nurses, etc.)
-- [ ] Medication adherence trends over time
-- [ ] Integration with pharmacy/appointment APIs
 
 ## Disclaimer
 

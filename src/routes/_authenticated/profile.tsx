@@ -1,0 +1,119 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { getProfile, updateProfile } from "@/lib/data.functions";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/_authenticated/profile")({
+  head: () => ({ meta: [{ title: "Profile · CareCircle" }] }),
+  component: ProfilePage,
+});
+
+function ProfilePage() {
+  const qc = useQueryClient();
+  const profile = useQuery({ queryKey: ["profile"], queryFn: () => getProfile() });
+
+  const save = useMutation({
+    mutationFn: (v: {
+      name: string;
+      age?: number | null;
+      medical_conditions?: string | null;
+      emergency_contact_name?: string | null;
+      emergency_contact_phone?: string | null;
+      preferred_reminder_time?: string | null;
+    }) => updateProfile({ data: v }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profile"] });
+      toast.success("Profile saved");
+    },
+  });
+
+  const submit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const ageStr = String(fd.get("age") || "");
+    save.mutate({
+      name: String(fd.get("name")),
+      age: ageStr ? Number(ageStr) : null,
+      medical_conditions: String(fd.get("medical_conditions") || ""),
+      emergency_contact_name: String(fd.get("ec_name") || ""),
+      emergency_contact_phone: String(fd.get("ec_phone") || ""),
+      preferred_reminder_time: String(fd.get("reminder_time") || "09:00"),
+    });
+  };
+
+  if (!profile.data) return <p>Loading...</p>;
+  const p = profile.data;
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      <h1 className="text-3xl font-bold">Your profile</h1>
+      <form onSubmit={submit}>
+        <Card>
+          <CardHeader>
+            <CardTitle>About you</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" name="name" defaultValue={p.name} required />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="age">Age</Label>
+                <Input id="age" name="age" type="number" defaultValue={p.age ?? ""} />
+              </div>
+              <div>
+                <Label htmlFor="reminder_time">Preferred check-in time</Label>
+                <Input
+                  id="reminder_time"
+                  name="reminder_time"
+                  type="time"
+                  defaultValue={p.preferred_reminder_time?.slice(0, 5) ?? "09:00"}
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="medical_conditions">Medical conditions</Label>
+              <Textarea
+                id="medical_conditions"
+                name="medical_conditions"
+                rows={3}
+                defaultValue={p.medical_conditions ?? ""}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle>Emergency contact</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="ec_name">Name</Label>
+              <Input id="ec_name" name="ec_name" defaultValue={p.emergency_contact_name ?? ""} />
+            </div>
+            <div>
+              <Label htmlFor="ec_phone">Phone</Label>
+              <Input
+                id="ec_phone"
+                name="ec_phone"
+                type="tel"
+                defaultValue={p.emergency_contact_phone ?? ""}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Button type="submit" size="lg" className="mt-4 w-full" disabled={save.isPending}>
+          Save changes
+        </Button>
+      </form>
+    </div>
+  );
+}

@@ -1,6 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { PLANS } from "@/lib/subscription/plans";
+import { limitReachedMessage } from "@/lib/subscription/errors";
+import { loadUsageAndPlan } from "@/lib/subscription/usage.server";
 
 // ---------- Profile ----------
 export const getProfile = createServerFn({ method: "GET" })
@@ -74,6 +77,22 @@ export const addMedication = createServerFn({ method: "POST" })
       .parse(v),
   )
   .handler(async ({ data, context }) => {
+    // Backend enforcement: Free plan allows up to 3 medications.
+    const { isPro } = await loadUsageAndPlan(context.supabase, context.userId);
+    if (!isPro) {
+      const { count, error: countErr } = await context.supabase
+        .from("medications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", context.userId);
+      if (countErr) throw new Error(countErr.message);
+      if ((count ?? 0) >= PLANS.free.limits.medications) {
+        throw new Error(
+          limitReachedMessage(
+            "You've added the maximum of 3 free medications. Upgrade to CareCircleAI Pro for unlimited access.",
+          ),
+        );
+      }
+    }
     const { error } = await context.supabase
       .from("medications")
       .insert({ ...data, user_id: context.userId });
@@ -140,6 +159,22 @@ export const addAppointment = createServerFn({ method: "POST" })
       .parse(v),
   )
   .handler(async ({ data, context }) => {
+    // Backend enforcement: Free plan allows up to 1 appointment.
+    const { isPro } = await loadUsageAndPlan(context.supabase, context.userId);
+    if (!isPro) {
+      const { count, error: countErr } = await context.supabase
+        .from("appointments")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", context.userId);
+      if (countErr) throw new Error(countErr.message);
+      if ((count ?? 0) >= PLANS.free.limits.appointments) {
+        throw new Error(
+          limitReachedMessage(
+            "You've added the maximum of 1 free appointment. Upgrade to CareCircleAI Pro for unlimited access.",
+          ),
+        );
+      }
+    }
     const { error } = await context.supabase
       .from("appointments")
       .insert({ ...data, user_id: context.userId });

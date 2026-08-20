@@ -1,0 +1,487 @@
+# CareCircle — Paddle Step 1: Migrate Sandbox to Live
+
+I am setting up Paddle subscriptions for my **CareCircle web app**.
+
+My intended live subscription pricing is:
+
+* **Pro Monthly:** $9.99/month
+* **Pro Yearly:** $39.99/year
+
+I have already tested my Paddle sandbox integration successfully.
+
+I now want to complete **Step 1 only: migrate/configure my Paddle LIVE account and code so it is ready for verification.**
+
+**Do NOT start account verification or take a live payment.**
+Those are the next steps:
+
+1. Verify my account
+2. Test and go live
+
+This step should only prepare my live Paddle account and code.
+
+I have two MCP servers:
+
+* `paddle-sandbox` — sandbox/source
+* `paddle-live` — live/destination
+
+## Important
+
+Before doing anything, inspect my existing CareCircle code, environment variables, and both Paddle accounts.
+
+I may have already completed some of this migration, so **do not redo anything that is already correct**.
+
+Start by giving me a short audit:
+
+* Already completed
+* Missing
+* Incorrect/partial
+* Needs my manual action
+
+Then complete only the missing/incorrect items.
+
+## 1. Audit the existing migration
+
+Compare my sandbox Paddle catalog against my live Paddle catalog.
+
+Check:
+
+* Products
+* Prices
+* Discounts
+* Product status
+* Price amounts
+* Billing intervals
+* Currency
+* Any IDs referenced by CareCircle
+
+Focus on my actual CareCircle subscription products:
+
+* $9.99/month
+* $39.99/year
+
+Ignore obvious sandbox test/junk products unless they are actually referenced by the CareCircle code.
+
+Also inspect the CareCircle codebase for:
+
+* Sandbox Paddle client-side tokens (`test_...`)
+* Live Paddle client-side tokens (`live_...`)
+* Paddle API keys
+* Sandbox price IDs (`pri_...`)
+* Live price IDs (`pri_...`)
+* Discount IDs
+* Webhook URLs
+* Webhook signing secrets
+* `sandbox-api.paddle.com`
+* `api.paddle.com`
+* `Paddle.Environment.set('sandbox')`
+* `Paddle.Initialize()`
+* Paddle customer ID handling
+* Subscription lifecycle logic
+* Checkout logic
+* Upgrade/downgrade logic
+* Webhook processing
+* Environment variables
+* `.env.example`
+
+Report the current state before making changes.
+
+## 2. Migrate the CareCircle catalog to LIVE
+
+For anything missing from Paddle LIVE:
+
+1. Read the corresponding product/price/discount from `paddle-sandbox`.
+2. Create the equivalent in `paddle-live`.
+3. Preserve the same:
+
+   * Product name
+   * Description
+   * Price
+   * Currency
+   * Billing interval
+   * Trial configuration if applicable
+   * Tax configuration where applicable
+   * Relevant metadata
+4. Do not migrate obvious test/junk products.
+5. Record a clear mapping:
+
+```text
+Sandbox ID → Live ID
+```
+
+I need the final live `pri_...` IDs because they must replace sandbox IDs in CareCircle.
+
+### IMPORTANT
+
+Never delete, archive, deactivate, or recreate an existing LIVE product or price.
+
+If an existing live price is wrong and fixing it would require creating a new price, **do not delete or modify the existing one**.
+
+Create a new correct price only if necessary, update the CareCircle code to use the correct price, and tell me exactly what happened.
+
+## 3. Configure LIVE credentials
+
+Inspect my existing environment variables.
+
+The frontend must use a LIVE Paddle client-side token beginning with:
+
+```text
+live_
+```
+
+Never hard-code credentials into source code.
+
+Use environment variables.
+
+If the `paddle-live` MCP can create a client-side token, create one.
+
+For the Paddle LIVE API key:
+
+* If it cannot be created through MCP, tell me exactly where to create it in the Paddle dashboard.
+* Never ask me to paste secrets into source code.
+* Never hard-code it.
+
+Update `.env.example` with the required variable names, but **never put real secrets inside `.env.example`**.
+
+## 4. Configure LIVE webhooks
+
+Inspect whether CareCircle already has a LIVE Paddle notification destination.
+
+### If a LIVE destination already exists:
+
+Reuse it.
+
+**DO NOT delete or recreate it.**
+
+Do not rotate its signing secret.
+
+This is extremely important because recreating the destination can invalidate the existing signing secret.
+
+### If no LIVE destination exists:
+
+Create one using `paddle-live`.
+
+Point it to the actual CareCircle production webhook endpoint.
+
+Read the returned:
+
+```text
+endpoint_secret_key
+```
+
+and update the environment variable used by the CareCircle webhook verification code.
+
+The signing secret must never be hard-coded.
+
+## 5. Switch CareCircle from SANDBOX to LIVE
+
+Replace sandbox configuration with the correct LIVE configuration wherever required.
+
+Specifically:
+
+### Frontend
+
+Remove:
+
+```text
+Paddle.Environment.set('sandbox')
+```
+
+if present.
+
+Live should be the default environment.
+
+Replace every sandbox price ID with its mapped LIVE price ID.
+
+Check all locations including:
+
+* Pricing UI
+* Checkout
+* Upgrade flow
+* Downgrade flow
+* Subscription management
+* Purchase buttons
+* Any pricing constants
+* Any configuration files
+* Any server/client shared configuration
+
+Do not only search one pricing component. Search the entire repository.
+
+### Server/API
+
+Replace:
+
+```text
+sandbox-api.paddle.com
+```
+
+with:
+
+```text
+api.paddle.com
+```
+
+where appropriate.
+
+Make sure the server uses the LIVE API key through an environment variable.
+
+## 6. Paddle Retain
+
+If CareCircle uses Paddle Retain, make sure `Paddle.Initialize()` includes:
+
+```text
+pwCustomer
+```
+
+using the authenticated user's actual Paddle customer ID.
+
+It must look conceptually like:
+
+```text
+pwCustomer: { id: 'ctm_...' }
+```
+
+The value must be the Paddle customer ID.
+
+Do NOT use:
+
+* CareCircle's internal user ID
+* Supabase user ID
+* Email address
+* Random customer identifier
+
+If CareCircle does not currently have the Paddle customer ID available, inspect the existing subscription/webhook/customer flow and implement the correct approach rather than guessing.
+
+## 7. Configure LIVE Paddle account
+
+Using `paddle-live` where possible, configure the remaining LIVE account settings.
+
+### Payment methods
+
+Check:
+
+**Checkout → Checkout settings → Payment methods**
+
+Enable the payment methods appropriate for CareCircle.
+
+If this cannot be configured through MCP, tell me exactly what I need to click.
+
+### Default payment link
+
+Do NOT attempt to configure this through MCP if Paddle only allows it through the dashboard.
+
+Tell me to go to:
+
+**Checkout → Checkout settings**
+
+and set the default payment link to the CareCircle LIVE checkout page.
+
+The domain must be a real production domain.
+
+Do NOT use:
+
+```text
+localhost
+127.0.0.1
+```
+
+### Domain approval
+
+Submit the actual CareCircle production domain for Paddle approval.
+
+Use:
+
+**Checkout → Request domain approval**
+
+Do this now so approval can happen while I complete verification.
+
+### Payouts
+
+Check:
+
+**Business account → Payouts → Payout settings**
+
+If bank details are missing and cannot be configured through MCP, tell me exactly where I need to add them.
+
+## 8. Webhook IP security
+
+Fetch Paddle's current LIVE webhook IP ranges from:
+
+```text
+https://api.paddle.com/ips
+```
+
+Use:
+
+```text
+data.ipv4_cidrs
+```
+
+as the source of truth.
+
+Do NOT hard-code an old IP list.
+
+Configure the CareCircle webhook server to allow Paddle's current IP ranges and reject requests from other IPs.
+
+If the current infrastructure cannot dynamically retrieve/update these ranges, explain the safest implementation for CareCircle.
+
+## 9. Pre-verification audit
+
+Before declaring Step 1 complete, inspect the actual CareCircle production website and codebase.
+
+Check:
+
+### Legal pages
+
+Confirm publicly accessible:
+
+* Terms & Conditions
+* Privacy Policy
+* Refund/Cancellation Policy
+
+Give me the exact URLs.
+
+Check that they:
+
+* Load successfully
+* Do not return 404
+* Do not redirect to an unrelated/generic page
+
+### Product description
+
+Confirm CareCircle clearly explains what the product does.
+
+### Contact information
+
+Confirm users can reach legitimate contact information from the homepage within two clicks or fewer.
+
+### Pricing
+
+Compare the CareCircle website pricing against the LIVE Paddle catalog.
+
+Expected pricing:
+
+* $9.99/month
+* $39.99/year
+
+Report any mismatch.
+
+### Production domains
+
+Check every domain where Paddle Checkout will run.
+
+Confirm each:
+
+* Resolves correctly
+* Loads the real CareCircle product
+* Is not parked
+* Is not a placeholder
+* Is not a 404
+
+Also confirm the domain is submitted/ready for Paddle approval.
+
+## 10. Final report
+
+At the end, give me a concise report with:
+
+### ✅ Completed
+
+Everything successfully migrated/configured.
+
+### ⚠️ Needs manual action
+
+Anything I personally need to do in the Paddle dashboard.
+
+For every manual action, give me the exact navigation path.
+
+Example:
+
+```text
+Paddle Dashboard
+→ Checkout
+→ Checkout settings
+→ Payment methods
+```
+
+### ❌ Blocking issues
+
+Anything preventing CareCircle from being ready for verification.
+
+### Sandbox → LIVE mapping
+
+Show the final mappings:
+
+```text
+Sandbox Product/Price → LIVE Product/Price
+```
+
+### Environment variables
+
+Tell me which variables CareCircle needs and whether each is configured.
+
+Do NOT reveal secret values.
+
+### Code status
+
+Confirm whether the repository contains any remaining:
+
+* Sandbox price IDs
+* Sandbox tokens
+* Sandbox API URLs
+* `Paddle.Environment.set('sandbox')`
+* Hard-coded secrets
+* Incorrect Paddle customer IDs
+* Incorrect webhook configuration
+
+## STRICT LIVE SAFETY RULES
+
+This is my LIVE Paddle account.
+
+Never:
+
+* Delete LIVE products
+* Delete LIVE prices
+* Archive LIVE products
+* Deactivate LIVE prices
+* Delete LIVE notification destinations
+* Recreate an existing LIVE notification destination
+* Rotate an existing LIVE webhook signing secret
+* Delete LIVE customers
+* Modify LIVE subscriptions
+* Modify LIVE transactions
+* Delete mirrored subscription records
+* Delete or modify sandbox entities
+
+Migration must be **additive and code-side**.
+
+If a genuine fix requires deleting/recreating a LIVE entity, STOP.
+
+Tell me:
+
+1. Which entity would be affected
+2. Its current state
+3. The exact change required
+4. Why it is necessary
+
+Then ask for my explicit approval before doing it.
+
+Do not perform destructive cleanup.
+
+## Final requirement
+
+Do NOT claim that Paddle verification is complete.
+
+Do NOT take a real LIVE payment.
+
+Do NOT open CareCircle's LIVE checkout to real customers yet.
+
+The goal of this task is only:
+
+**Sandbox tested → LIVE account/code configured → ready for Paddle verification.**
+
+After this is complete, I will move to:
+
+**Step 2: Verify my account**
+
+and then:
+
+**Step 3: Test and go live.**

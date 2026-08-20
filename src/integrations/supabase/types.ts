@@ -211,6 +211,75 @@ export type Database = {
         };
         Relationships: [];
       };
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean;
+          created_at: string;
+          current_period_end: string | null;
+          paddle_customer_id: string | null;
+          paddle_price_id: string | null;
+          paddle_subscription_id: string | null;
+          plan: string;
+          status: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          cancel_at_period_end?: boolean;
+          created_at?: string;
+          current_period_end?: string | null;
+          paddle_customer_id?: string | null;
+          paddle_price_id?: string | null;
+          paddle_subscription_id?: string | null;
+          plan?: string;
+          status?: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          cancel_at_period_end?: boolean;
+          created_at?: string;
+          current_period_end?: string | null;
+          paddle_customer_id?: string | null;
+          paddle_price_id?: string | null;
+          paddle_subscription_id?: string | null;
+          plan?: string;
+          status?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      usage: {
+        Row: {
+          ai_conversations: number;
+          checkins: number;
+          created_at: string;
+          id: string;
+          updated_at: string;
+          usage_date: string;
+          user_id: string;
+        };
+        Insert: {
+          ai_conversations?: number;
+          checkins?: number;
+          created_at?: string;
+          id?: string;
+          updated_at?: string;
+          usage_date?: string;
+          user_id: string;
+        };
+        Update: {
+          ai_conversations?: number;
+          checkins?: number;
+          created_at?: string;
+          id?: string;
+          updated_at?: string;
+          usage_date?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

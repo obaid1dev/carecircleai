@@ -3,6 +3,9 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { PLANS } from "@/lib/subscription/plans";
+import { limitReachedMessage } from "@/lib/subscription/errors";
+import { incrementUsage, loadUsageAndPlan } from "@/lib/subscription/usage.server";
 
 const messageSchema = z.object({
   role: z.enum(["user", "assistant", "system"]),
@@ -23,6 +26,16 @@ export const finishCheckin = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const key = process.env.OPENROUTER_API_KEY;
     if (!key) throw new Error("Missing OPENROUTER_API_KEY");
+
+    // Backend enforcement: Free plan allows one daily check-in.
+    const { isPro, usage } = await loadUsageAndPlan(context.supabase, context.userId);
+    if (!isPro && usage.checkins >= PLANS.free.limits.daily_checkins) {
+      throw new Error(
+        limitReachedMessage(
+          "You've used today's daily check-in. Upgrade to CareCircleAI Pro for unlimited access.",
+        ),
+      );
+    }
 
     const transcript = data.messages
       .filter((m) => m.role !== "system")
@@ -77,6 +90,8 @@ ${transcript}`;
       { onConflict: "user_id,checkin_date" },
     );
     if (upErr) throw new Error(upErr.message);
+
+    await incrementUsage(context.supabase, context.userId, "checkins");
 
     // Generate alert if medium/high risk
     if (analysis.risk_level === "medium" || analysis.risk_level === "high") {

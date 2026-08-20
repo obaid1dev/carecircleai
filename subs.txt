@@ -1,0 +1,520 @@
+# CareCircleAI - Landing Page Pricing, Paywall & Complete Subscription System
+
+Create a complete, production-ready pricing and subscription system for CareCircleAI.
+
+The implementation should include:
+
+* Beautiful Landing Page Pricing Section (NOT a separate pricing page)
+* Premium Paywall Modal
+* Complete Free vs Pro Subscription Logic
+* Backend Feature Gating
+* Ready to connect with Paddle Checkout
+* Fully responsive
+* Modern animations
+* Clean scalable architecture
+
+The design should perfectly match the existing CareCircleAI aesthetic with rounded cards, subtle gradients, smooth animations, glassmorphism where appropriate, excellent spacing, beautiful typography, and mobile-first responsiveness.
+
+---
+
+# Landing Page Pricing Section
+
+Do NOT create a separate Pricing page.
+
+Instead, add a premium pricing section directly on the Landing Page.
+
+---
+
+## Section Heading
+
+### Simple pricing for every family
+
+Supporting your loved ones should be simple. Start free and upgrade whenever you need unlimited care.
+
+---
+
+# Pricing Cards
+
+Display two beautiful pricing cards.
+
+---
+
+## 🟢 Free
+
+Price
+
+$0
+
+Subtitle
+
+Perfect for trying CareCircleAI.
+
+Features
+
+✓ 1 AI Daily Check-in per day
+
+✓ Up to 3 Medications
+
+✓ 1 Appointment
+
+✓ AI Chat (limited to 10/day)
+
+✓ Medication reminders
+
+✓ Appointment reminders
+
+✓ Family dashboard
+
+✓ Secure cloud sync
+
+✗ Unlimited AI Conversations
+
+✗ Unlimited Medications
+
+✗ Unlimited Appointments
+
+✗ Unlimited Family Members
+
+✗ AI Health Insights
+
+✗ Export Health Reports
+
+✗ Priority AI Responses
+
+✗ Priority Support
+
+Primary Button
+
+Start Free
+
+---
+
+## ⭐ CareCircleAI Pro
+
+Highlight this card.
+
+Add a beautiful glowing border.
+
+Add a "Most Popular" badge.
+
+At the top of the card include a billing toggle.
+
+Monthly
+
+$9.99/month
+
+Yearly
+
+$39.99/year
+
+Display
+
+Save 67%
+
+Features
+
+✓ Unlimited AI Daily Check-ins
+
+✓ Unlimited AI Conversations
+
+✓ Unlimited Medications
+
+✓ Unlimited Appointments
+
+✓ Unlimited Reminder Notifications
+
+✓ Unlimited Family Members
+
+✓ AI Health Insights & Summaries
+
+✓ Export Health Reports
+
+✓ Priority AI Responses
+
+✓ Priority Support
+
+✓ Early Access to New Features
+
+Primary Button
+
+Upgrade to Pro
+
+This button should NOT collect payments directly.
+
+Instead it should trigger Paddle Checkout.
+
+---
+
+# Feature Comparison Table
+
+Below pricing cards create a beautiful comparison table.
+
+Feature | Free | Pro
+
+AI Daily Check-ins | 1/day | Unlimited
+
+AI Conversations | 10/day | Unlimited
+
+Medications | 3 | Unlimited
+
+Appointments | 1 | Unlimited
+
+Medication Reminders | ✓ | ✓
+
+Appointment Reminders | ✓ | ✓
+
+Family Dashboard | ✓ | ✓
+
+Family Members | 1 | Unlimited
+
+AI Health Insights | ✗ | ✓
+
+Export Reports | ✗ | ✓
+
+Priority AI | ✗ | ✓
+
+Priority Support | ✗ | ✓
+
+---
+
+# Trust Section
+
+Below pricing display:
+
+Trusted by families caring for loved ones ❤️
+
+Show trust badges
+
+• Secure Payments by Paddle
+
+• Cancel Anytime
+
+• No Hidden Fees
+
+• Privacy First
+
+---
+
+# FAQ Section
+
+Create a beautiful accordion.
+
+Questions
+
+Can I cancel anytime?
+
+Yes. Your subscription remains active until the current billing period ends.
+
+Can I switch between monthly and yearly?
+
+Yes. Upgrade or downgrade anytime.
+
+Is my data secure?
+
+Absolutely. All family data is encrypted.
+
+When do I receive Pro features?
+
+Immediately after Paddle confirms payment.
+
+---
+
+# Premium Paywall Modal
+
+Create a beautiful premium paywall modal.
+
+The modal should be reusable throughout the app.
+
+Blur the background.
+
+Beautiful glassmorphism.
+
+Large premium icon.
+
+Title
+
+Upgrade to CareCircleAI Pro
+
+Subtitle
+
+Unlock unlimited AI-powered caregiving.
+
+Show benefits
+
+✓ Unlimited AI Conversations
+
+✓ Unlimited Daily Check-ins
+
+✓ Unlimited Medications
+
+✓ Unlimited Appointments
+
+✓ Unlimited Family Members
+
+✓ AI Health Insights
+
+✓ Export Health Reports
+
+✓ Priority AI
+
+Buttons
+
+Upgrade to Pro
+
+Maybe Later
+
+Upgrade button opens Paddle Checkout.
+
+---
+
+# Complete Subscription Logic
+
+Do NOT only build the UI.
+
+Implement the complete subscription system.
+
+---
+
+## Free Plan Limits
+
+Free users may only have
+
+1 AI Daily Check-in each day
+
+Maximum 3 Medications
+
+Maximum 1 Appointment
+
+Maximum 10 AI Conversations per day
+
+Basic reminders
+
+The application MUST enforce these limits.
+
+---
+
+## Pro Plan
+
+After purchasing Pro
+
+Unlimited AI Daily Check-ins
+
+Unlimited AI Conversations
+
+Unlimited Medications
+
+Unlimited Appointments
+
+Unlimited Reminder Notifications
+
+Unlimited Family Members
+
+AI Health Insights
+
+Priority AI Responses
+
+Export Health Reports
+
+Future premium features
+
+No usage limits.
+
+---
+
+# Feature Gating
+
+Whenever a Free user reaches a limit,
+
+DO NOT allow the action.
+
+Instead automatically display the Premium Paywall Modal.
+
+Examples
+
+Trying to add a 4th Medication
+
+Trying to create a 2nd Appointment
+
+Trying to perform another Daily Check-in
+
+Trying to exceed AI conversation limit
+
+Trying to use AI Health Insights
+
+Trying to Export Reports
+
+Trying to add additional Family Members
+
+Any Pro-only feature
+
+Every premium feature should automatically trigger the Premium Paywall Modal.
+
+---
+
+# Backend Enforcement
+
+Subscription limits MUST NOT rely only on frontend checks.
+
+The backend/API must verify the user's subscription before allowing any premium action.
+
+Even if someone modifies frontend code or manually sends API requests, Free plan limits must still be enforced.
+
+Use the subscription status stored in Supabase after Paddle webhook confirmation.
+
+Never trust the frontend.
+
+---
+
+# Subscription Utilities
+
+Create reusable helpers.
+
+Examples
+
+isProUser()
+
+getSubscription()
+
+checkFeatureLimit()
+
+incrementUsage()
+
+resetDailyUsage()
+
+Do NOT duplicate subscription logic across components.
+
+---
+
+# Usage Tracking
+
+Track
+
+Daily AI Conversations
+
+Daily Check-ins
+
+Medication Count
+
+Appointment Count
+
+Family Member Count
+
+Reset daily counters automatically.
+
+---
+
+# User Experience
+
+Show usage information throughout the app.
+
+Examples
+
+"You've used 8 of 10 AI chats today."
+
+"You've used today's Daily Check-in."
+
+"You've added 3 of 3 Medications."
+
+When a limit is reached
+
+"Your free limit has been reached.
+
+Upgrade to CareCircleAI Pro for unlimited access."
+
+Always provide an Upgrade button.
+
+---
+
+# Future Proof Architecture
+
+The subscription system should be configurable.
+
+Create a single configuration file where plan limits are stored.
+
+Example
+
+Free Plan
+
+Daily AI Chats = 10
+
+Daily Check-ins = 1
+
+Medications = 3
+
+Appointments = 1
+
+Family Members = 1
+
+Pro Plan
+
+Everything Unlimited
+
+Adding future plans should only require editing the configuration.
+
+---
+
+# Paddle Integration Preparation
+
+Do NOT fully integrate Paddle yet.
+
+Instead prepare everything.
+
+The Upgrade buttons should call a single function.
+
+Example
+
+handleUpgrade()
+
+Later this function will open Paddle Checkout.
+
+Every Upgrade button throughout the app should reuse this same function.
+
+---
+
+# UI & Animation Requirements
+
+Modern SaaS design
+
+Beautiful gradients
+
+Glassmorphism
+
+Smooth Framer Motion animations
+
+Hover effects
+
+Animated billing toggle
+
+Animated comparison table
+
+Premium card glow
+
+Responsive for
+
+Desktop
+
+Tablet
+
+Mobile
+
+Consistent spacing
+
+Excellent accessibility
+
+Fast loading
+
+Production-quality code
+
+---
+
+# Code Quality
+
+Follow clean architecture.
+
+Use reusable React components.
+
+Keep pricing, paywall, subscription logic, and utilities modular.
+
+Avoid duplicated code.
+
+The implementation should be scalable, maintainable, production-ready, and ready to connect to Paddle with minimal additional work.

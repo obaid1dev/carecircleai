@@ -12,11 +12,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, Calendar as CalIcon } from "lucide-react";
+import { Plus, Trash2, Calendar as CalIcon, Crown } from "lucide-react";
 import { listAppointments, addAppointment, deleteAppointment } from "@/lib/data.functions";
 import { useState } from "react";
 import { format, isPast } from "date-fns";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { useSubscriptionContext } from "@/lib/subscription/subscription-provider";
+import { PLANS } from "@/lib/subscription/plans";
 
 export const Route = createFileRoute("/_authenticated/appointments")({
   head: () => ({ meta: [{ title: "Appointments · CareCircle" }] }),
@@ -27,6 +30,7 @@ function ApptPage() {
   const qc = useQueryClient();
   const appts = useQuery({ queryKey: ["appts"], queryFn: () => listAppointments() });
   const [open, setOpen] = useState(false);
+  const { guard, isPro, openPaywall, isLimitError } = useSubscriptionContext();
 
   const add = useMutation({
     mutationFn: (v: { doctor: string; appt_at: string; notes?: string }) =>
@@ -35,6 +39,9 @@ function ApptPage() {
       qc.invalidateQueries({ queryKey: ["appts"] });
       setOpen(false);
       toast.success("Appointment added");
+    },
+    onError: (err) => {
+      if (isLimitError(err)) openPaywall();
     },
   });
 
@@ -45,6 +52,7 @@ function ApptPage() {
 
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!guard("appointments", list.length)) return;
     const fd = new FormData(e.currentTarget);
     const date = String(fd.get("date"));
     const time = String(fd.get("time"));
@@ -58,14 +66,26 @@ function ApptPage() {
   const list = appts.data ?? [];
   const upcoming = list.filter((a) => !isPast(new Date(a.appt_at)));
   const past = list.filter((a) => isPast(new Date(a.appt_at)));
+  const apptLimit = PLANS.free.limits.appointments;
+  const atLimit = !isPro && list.length >= apptLimit;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Appointments</h1>
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="flex items-center justify-between"
+      >
+        <div className="flex items-center gap-3">
+          <span className="inline-flex w-11 h-11 items-center justify-center rounded-2xl gradient-primary shadow-lg shadow-emerald-700/25">
+            <CalIcon className="w-5 h-5 text-white" />
+          </span>
+          <h1 className="text-3xl font-bold tracking-tight">Appointments</h1>
+        </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="lg">
+            <Button size="lg" disabled={atLimit}>
               <Plus className="mr-2 w-4 h-4" />
               Add
             </Button>
@@ -99,24 +119,45 @@ function ApptPage() {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+      </motion.div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Upcoming</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {upcoming.length === 0 && (
-            <p className="text-muted-foreground text-center py-6">No upcoming appointments.</p>
+      {!isPro && (
+        <div className="flex items-center justify-between gap-2 flex-wrap rounded-xl glass px-4 py-2.5 text-sm">
+          <span className="text-muted-foreground">
+            {atLimit
+              ? "Your free limit has been reached."
+              : `You've added ${list.length} of ${apptLimit} free appointment${apptLimit === 1 ? "" : "s"}.`}
+          </span>
+          {atLimit && (
+            <Button size="sm" onClick={() => openPaywall()}>
+              <Crown className="w-3.5 h-3.5" /> Upgrade
+            </Button>
           )}
-          {upcoming.map((a) => (
-            <Item key={a.id} a={a} onDelete={() => del.mutate(a.id)} />
-          ))}
-        </CardContent>
-      </Card>
+        </div>
+      )}
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, delay: 0.1 }}
+      >
+        <Card className="glass rounded-2xl">
+          <CardHeader>
+            <CardTitle>Upcoming</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {upcoming.length === 0 && (
+              <p className="text-muted-foreground text-center py-6">No upcoming appointments.</p>
+            )}
+            {upcoming.map((a) => (
+              <Item key={a.id} a={a} onDelete={() => del.mutate(a.id)} />
+            ))}
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {past.length > 0 && (
-        <Card>
+        <Card className="glass rounded-2xl">
           <CardHeader>
             <CardTitle className="text-muted-foreground">Past</CardTitle>
           </CardHeader>
@@ -142,10 +183,10 @@ function Item({
 }) {
   return (
     <div
-      className={`flex items-center gap-3 p-3 rounded-xl bg-secondary ${muted ? "opacity-70" : ""}`}
+      className={`flex items-center gap-3 p-3 rounded-xl bg-secondary/60 ${muted ? "opacity-70" : ""}`}
     >
-      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-        <CalIcon className="w-5 h-5 text-primary" />
+      <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center shadow-md shadow-emerald-700/20">
+        <CalIcon className="w-5 h-5 text-white" />
       </div>
       <div className="flex-1">
         <p className="font-medium">{a.doctor}</p>

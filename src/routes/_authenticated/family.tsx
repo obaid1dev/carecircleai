@@ -3,7 +3,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, TrendingUp, Pill, Calendar, MessageCircle, X } from "lucide-react";
+import {
+  AlertTriangle,
+  TrendingUp,
+  Pill,
+  Calendar,
+  MessageCircle,
+  X,
+  FileDown,
+} from "lucide-react";
 import {
   getProfile,
   listMedications,
@@ -13,6 +21,11 @@ import {
   dismissAlert,
 } from "@/lib/data.functions";
 import { format, formatDistanceToNow, isPast } from "date-fns";
+import { motion } from "framer-motion";
+import { useSubscriptionContext } from "@/lib/subscription/subscription-provider";
+import { ProGate } from "@/components/subscription/ProGate";
+import { downloadHealthReport } from "@/lib/report";
+import { toast } from "sonner";
 import {
   LineChart,
   Line,
@@ -35,6 +48,35 @@ function Family() {
   const appts = useQuery({ queryKey: ["appts"], queryFn: () => listAppointments() });
   const checkins = useQuery({ queryKey: ["checkins"], queryFn: () => listCheckins() });
   const alerts = useQuery({ queryKey: ["alerts"], queryFn: () => listAlerts() });
+  const { guard, isPro } = useSubscriptionContext();
+
+  const exportReport = () => {
+    if (!guard("export_reports")) return;
+    downloadHealthReport({
+      name: profile.data?.name || "Your loved one",
+      checkins: (checkins.data ?? []).map((c) => ({
+        id: c.id,
+        checkin_date: c.checkin_date,
+        mood_score: c.mood_score,
+        risk_level: c.risk_level,
+        ai_summary: c.ai_summary,
+      })),
+      medications: (meds.data ?? []).map((m) => ({
+        id: m.id,
+        medicine_name: m.medicine_name,
+        dosage: m.dosage,
+        reminder_time: m.reminder_time,
+        taken_today: m.taken_today,
+      })),
+      appointments: (appts.data ?? []).map((a) => ({
+        id: a.id,
+        doctor: a.doctor,
+        appt_at: a.appt_at,
+        notes: a.notes,
+      })),
+    });
+    toast.success("Health report downloaded");
+  };
 
   const dismiss = useMutation({
     mutationFn: (id: string) => dismissAlert({ data: { id } }),
@@ -56,12 +98,29 @@ function Family() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-muted-foreground">Family dashboard</p>
-        <h1 className="text-3xl font-bold">
-          How {profile.data?.name || "your loved one"} is doing
-        </h1>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="flex flex-col sm:flex-row sm:items-end justify-between gap-3"
+      >
+        <div>
+          <p className="text-muted-foreground">Family dashboard</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            How <span className="text-gradient">{profile.data?.name || "your loved one"}</span> is
+            doing
+          </h1>
+        </div>
+        <Button
+          variant={isPro ? "outline" : "default"}
+          size="sm"
+          onClick={exportReport}
+          className="self-start sm:self-auto gap-2"
+        >
+          <FileDown className="w-4 h-4" />
+          Export health report
+        </Button>
+      </motion.div>
 
       {openAlerts.length > 0 && (
         <div className="space-y-2">
@@ -103,122 +162,176 @@ function Family() {
       )}
 
       <div className="grid md:grid-cols-3 gap-4">
-        <Stat
-          icon={<MessageCircle className="w-5 h-5" />}
-          label="Today's check-in"
-          value={today ? `Mood ${today.mood_score}/10` : "Not yet"}
-          hint={today?.risk_level ? `${today.risk_level} risk` : "No check-in today"}
-        />
-        <Stat
-          icon={<Pill className="w-5 h-5" />}
-          label="Medication today"
-          value={`${adherence}%`}
-          hint={`${takenToday} of ${medList.length} taken`}
-        />
-        <Stat
-          icon={<Calendar className="w-5 h-5" />}
-          label="Next appointment"
-          value={upcomingAppt ? upcomingAppt.doctor : "None"}
-          hint={
-            upcomingAppt
-              ? format(new Date(upcomingAppt.appt_at), "MMM d · h:mm a")
-              : "Nothing scheduled"
-          }
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.1 }}
+        >
+          <Stat
+            icon={<MessageCircle className="w-5 h-5" />}
+            label="Today's check-in"
+            value={today ? `Mood ${today.mood_score}/10` : "Not yet"}
+            hint={today?.risk_level ? `${today.risk_level} risk` : "No check-in today"}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.15 }}
+        >
+          <Stat
+            icon={<Pill className="w-5 h-5" />}
+            label="Medication today"
+            value={`${adherence}%`}
+            hint={`${takenToday} of ${medList.length} taken`}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.2 }}
+        >
+          <Stat
+            icon={<Calendar className="w-5 h-5" />}
+            label="Next appointment"
+            value={upcomingAppt ? upcomingAppt.doctor : "None"}
+            hint={
+              upcomingAppt
+                ? format(new Date(upcomingAppt.appt_at), "MMM d · h:mm a")
+                : "Nothing scheduled"
+            }
+          />
+        </motion.div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <TrendingUp className="w-5 h-5 text-primary" /> Mood trend (last {chartData.length}{" "}
-              days)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="h-64">
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                  <XAxis dataKey="date" stroke="var(--color-muted-foreground)" fontSize={12} />
-                  <YAxis domain={[0, 10]} stroke="var(--color-muted-foreground)" fontSize={12} />
-                  <Tooltip
-                    contentStyle={{
-                      background: "var(--color-card)",
-                      border: "1px solid var(--color-border)",
-                      borderRadius: 8,
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="mood"
-                    stroke="var(--color-primary)"
-                    strokeWidth={3}
-                    dot={{ r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-muted-foreground text-center pt-12">
-                No check-ins yet. Start one to see mood trends here.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.25 }}
+        >
+          <Card className="glass rounded-2xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <span className="inline-flex w-8 h-8 items-center justify-center rounded-lg gradient-primary shadow-md shadow-emerald-700/25">
+                  <TrendingUp className="w-4 h-4 text-white" />
+                </span>{" "}
+                Mood trend (last {chartData.length} days)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="h-64">
+              <ProGate
+                title="AI Health Insights"
+                description="Mood trends and deeper wellbeing analysis for your loved one."
+              >
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                      <XAxis dataKey="date" stroke="var(--color-muted-foreground)" fontSize={12} />
+                      <YAxis
+                        domain={[0, 10]}
+                        stroke="var(--color-muted-foreground)"
+                        fontSize={12}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          background: "var(--color-card)",
+                          border: "1px solid var(--color-border)",
+                          borderRadius: 8,
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="mood"
+                        stroke="var(--color-primary)"
+                        strokeWidth={3}
+                        dot={{ r: 4 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-muted-foreground text-center pt-12">
+                    No check-ins yet. Start one to see mood trends here.
+                  </p>
+                )}
+              </ProGate>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Recent AI summaries</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 max-h-64 overflow-y-auto">
-            {(checkins.data ?? []).length === 0 && (
-              <p className="text-muted-foreground">No check-ins yet.</p>
-            )}
-            {(checkins.data ?? []).slice(0, 6).map((c) => (
-              <div key={c.id} className="border-l-2 border-primary/30 pl-3">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>{format(new Date(c.checkin_date), "MMM d")}</span>
-                  {c.risk_level && (
-                    <Badge variant="outline" className="capitalize text-xs">
-                      {c.risk_level}
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-sm mt-1">{c.ai_summary || "No summary."}</p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.3 }}
+        >
+          <Card className="glass rounded-2xl">
+            <CardHeader>
+              <CardTitle className="text-lg">Recent AI summaries</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 max-h-64 overflow-y-auto scrollbar-hide">
+              <ProGate
+                title="AI Summaries"
+                description="Daily AI summaries and health insights for your loved one."
+              >
+                {(checkins.data ?? []).length === 0 && (
+                  <p className="text-muted-foreground">No check-ins yet.</p>
+                )}
+                {(checkins.data ?? []).slice(0, 6).map((c) => (
+                  <div key={c.id} className="border-l-2 border-primary/30 pl-3">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>{format(new Date(c.checkin_date), "MMM d")}</span>
+                      {c.risk_level && (
+                        <Badge variant="outline" className="capitalize text-xs">
+                          {c.risk_level}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm mt-1">{c.ai_summary || "No summary."}</p>
+                  </div>
+                ))}
+              </ProGate>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Medication adherence</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {medList.length === 0 && <p className="text-muted-foreground">No medications tracked.</p>}
-          {medList.map((m) => (
-            <div
-              key={m.id}
-              className="flex items-center justify-between p-3 rounded-lg bg-secondary"
-            >
-              <div>
-                <p className="font-medium">{m.medicine_name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {m.dosage ? `${m.dosage} · ` : ""}
-                  {m.reminder_time?.slice(0, 5)}
-                </p>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, delay: 0.35 }}
+      >
+        <Card className="glass rounded-2xl">
+          <CardHeader>
+            <CardTitle className="text-lg">Medication adherence</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {medList.length === 0 && (
+              <p className="text-muted-foreground">No medications tracked.</p>
+            )}
+            {medList.map((m) => (
+              <div
+                key={m.id}
+                className="flex items-center justify-between p-3 rounded-xl bg-secondary/60"
+              >
+                <div>
+                  <p className="font-medium">{m.medicine_name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {m.dosage ? `${m.dosage} · ` : ""}
+                    {m.reminder_time?.slice(0, 5)}
+                  </p>
+                </div>
+                <Badge variant={m.taken_today ? "default" : "outline"}>
+                  {m.taken_today ? "Taken today" : "Not yet"}
+                </Badge>
               </div>
-              <Badge variant={m.taken_today ? "default" : "outline"}>
-                {m.taken_today ? "Taken today" : "Not yet"}
-              </Badge>
-            </div>
-          ))}
-          <Button asChild variant="outline" className="w-full mt-2">
-            <Link to="/medications">Manage</Link>
-          </Button>
-        </CardContent>
-      </Card>
+            ))}
+            <Button asChild variant="outline" className="w-full mt-2 rounded-xl">
+              <Link to="/medications">Manage</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }
@@ -235,12 +348,15 @@ function Stat({
   hint: string;
 }) {
   return (
-    <Card>
+    <Card className="glass rounded-2xl card-hover">
       <CardContent className="p-5">
         <div className="flex items-center gap-2 text-muted-foreground text-sm">
-          {icon} {label}
+          <span className="inline-flex w-7 h-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            {icon}
+          </span>
+          {label}
         </div>
-        <p className="text-2xl font-bold mt-1">{value}</p>
+        <p className="text-2xl font-bold mt-2">{value}</p>
         <p className="text-xs text-muted-foreground mt-1">{hint}</p>
       </CardContent>
     </Card>

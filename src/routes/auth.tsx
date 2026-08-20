@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, Mail, CheckCircle2 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
@@ -19,7 +20,11 @@ export const Route = createFileRoute("/auth")({
   beforeLoad: async () => {
     const { data } = await supabase.auth.getUser();
     if (data.user) {
-      const { data: profile } = await supabase.from("profiles").select("active_role").eq("id", data.user.id).maybeSingle();
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("active_role")
+        .eq("id", data.user.id)
+        .maybeSingle();
       const role = profile?.active_role || "senior";
       throw redirect({ to: role === "caregiver" ? "/family" : "/dashboard" });
     }
@@ -43,8 +48,13 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) {
-      if (error.message.includes("Email not confirmed") || error.message.includes("email not confirmed")) {
-        return toast.error("Please confirm your email before signing in. Check your inbox for the confirmation link.");
+      if (
+        error.message.includes("Email not confirmed") ||
+        error.message.includes("email not confirmed")
+      ) {
+        return toast.error(
+          "Please confirm your email before signing in. Check your inbox for the confirmation link.",
+        );
       }
       return toast.error(error.message);
     }
@@ -71,120 +81,155 @@ function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 relative overflow-hidden">
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <div className="absolute -top-24 -left-24 w-[32rem] h-[32rem] rounded-full bg-primary/15 blur-3xl animate-blob" />
+        <div className="absolute -bottom-32 -right-24 w-[30rem] h-[30rem] rounded-full bg-emerald-400/15 blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[24rem] h-[24rem] rounded-full bg-accent/25 blur-3xl animate-blob animation-delay-4000" />
+      </div>
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center justify-center gap-2 font-semibold text-lg mb-6">
-          <Heart className="w-6 h-6 text-accent" fill="currentColor" />
+          <span className="gradient-primary flex h-9 w-9 items-center justify-center rounded-xl shadow-lg shadow-emerald-700/30">
+            <Heart className="w-5 h-5 text-white" fill="currentColor" />
+          </span>
           CareCircle
         </Link>
 
-        {showEmailConfirmation ? (
-          <Card>
-            <CardHeader className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-8 h-8 text-green-600" />
-              </div>
-              <CardTitle>Check your email</CardTitle>
-              <CardDescription className="text-muted-foreground">
-                We've sent a confirmation link to <strong>{confirmedEmail}</strong>. Please open
-                your inbox and click the link to verify your account.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-muted/50 rounded-lg space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  <Mail className="w-4 h-4 inline mr-1" /> Didn't receive the email?
-                </p>
-                <ul className="text-sm text-muted-foreground space-y-1 pl-4 list-disc">
-                  <li>Check your spam or promotions folder</li>
-                  <li>Make sure you entered the correct email address</li>
-                  <li>Wait a few minutes - sometimes delivery takes a moment</li>
-                </ul>
-              </div>
-              <Button
-                className="w-full"
-                onClick={() => {
-                  setShowEmailConfirmation(false);
-                  setConfirmedEmail("");
-                }}
-              >
-                Back to sign in
-              </Button>
-              <p className="text-center text-xs text-muted-foreground">
-                Already confirmed?{" "}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="p-0 h-auto"
-                  onClick={() => router.navigate({ to: "/auth" })}
-                >
-                  Sign in now
-                </Button>
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Welcome</CardTitle>
-              <CardDescription>Sign in or create your account to continue.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="signin">
-                <TabsList className="grid grid-cols-2 w-full">
-                  <TabsTrigger value="signin">Sign in</TabsTrigger>
-                  <TabsTrigger value="signup">Sign up</TabsTrigger>
-                </TabsList>
-                <TabsContent value="signin">
-                  <form onSubmit={signIn} className="space-y-4 mt-4">
-                    <div>
-                      <Label htmlFor="si-email">Email</Label>
-                      <Input id="si-email" name="email" type="email" required />
-                    </div>
-                    <div>
-                      <Label htmlFor="si-password">Password</Label>
-                      <Input
-                        id="si-password"
-                        name="password"
-                        type="password"
-                        required
-                        minLength={6}
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      Sign in
+        <AnimatePresence mode="wait">
+          {showEmailConfirmation ? (
+            <motion.div
+              key="confirm"
+              initial={{ opacity: 0, y: 16, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.98 }}
+              transition={{ type: "spring", damping: 26, stiffness: 300 }}
+            >
+              <Card className="glass-strong rounded-3xl border-transparent shadow-2xl shadow-black/10 dark:shadow-black/40">
+                <CardHeader className="text-center pt-8">
+                  <div className="w-16 h-16 mx-auto mb-4 gradient-primary rounded-full flex items-center justify-center shadow-lg shadow-emerald-700/30">
+                    <CheckCircle2 className="w-8 h-8 text-white" />
+                  </div>
+                  <CardTitle>Check your email</CardTitle>
+                  <CardDescription className="text-muted-foreground">
+                    We've sent a confirmation link to <strong>{confirmedEmail}</strong>. Please open
+                    your inbox and click the link to verify your account.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      <Mail className="w-4 h-4 inline mr-1" /> Didn't receive the email?
+                    </p>
+                    <ul className="text-sm text-muted-foreground space-y-1 pl-4 list-disc">
+                      <li>Check your spam or promotions folder</li>
+                      <li>Make sure you entered the correct email address</li>
+                      <li>Wait a few minutes - sometimes delivery takes a moment</li>
+                    </ul>
+                  </div>
+                  <Button
+                    className="w-full"
+                    onClick={() => {
+                      setShowEmailConfirmation(false);
+                      setConfirmedEmail("");
+                    }}
+                  >
+                    Back to sign in
+                  </Button>
+                  <p className="text-center text-xs text-muted-foreground">
+                    Already confirmed?{" "}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="p-0 h-auto"
+                      onClick={() => router.navigate({ to: "/auth" })}
+                    >
+                      Sign in now
                     </Button>
-                  </form>
-                </TabsContent>
-                <TabsContent value="signup">
-                  <form onSubmit={signUp} className="space-y-4 mt-4">
-                    <div>
-                      <Label htmlFor="su-name">Your name</Label>
-                      <Input id="su-name" name="name" required />
-                    </div>
-                    <div>
-                      <Label htmlFor="su-email">Email</Label>
-                      <Input id="su-email" name="email" type="email" required />
-                    </div>
-                    <div>
-                      <Label htmlFor="su-password">Password</Label>
-                      <Input
-                        id="su-password"
-                        name="password"
-                        type="password"
-                        required
-                        minLength={6}
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      Create account
-                    </Button>
-                  </form>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        )}
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="auth"
+              initial={{ opacity: 0, y: 16, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.98 }}
+              transition={{ type: "spring", damping: 26, stiffness: 300 }}
+            >
+              <Card className="glass-strong rounded-3xl border-transparent shadow-2xl shadow-black/10 dark:shadow-black/40">
+                <CardHeader className="pt-8">
+                  <CardTitle>Welcome</CardTitle>
+                  <CardDescription>Sign in or create your account to continue.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="signin">
+                    <TabsList className="grid grid-cols-2 w-full rounded-full bg-background/60 p-1 border border-border/50">
+                      <TabsTrigger
+                        value="signin"
+                        className="rounded-full data-[state=active]:bg-gradient-to-br data-[state=active]:from-primary data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-emerald-700/25"
+                      >
+                        Sign in
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="signup"
+                        className="rounded-full data-[state=active]:bg-gradient-to-br data-[state=active]:from-primary data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-emerald-700/25"
+                      >
+                        Sign up
+                      </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="signin">
+                      <form onSubmit={signIn} className="space-y-4 mt-4">
+                        <div>
+                          <Label htmlFor="si-email">Email</Label>
+                          <Input id="si-email" name="email" type="email" required />
+                        </div>
+                        <div>
+                          <Label htmlFor="si-password">Password</Label>
+                          <Input
+                            id="si-password"
+                            name="password"
+                            type="password"
+                            required
+                            minLength={6}
+                          />
+                        </div>
+                        <Button type="submit" className="w-full" disabled={loading}>
+                          Sign in
+                        </Button>
+                      </form>
+                    </TabsContent>
+                    <TabsContent value="signup">
+                      <form onSubmit={signUp} className="space-y-4 mt-4">
+                        <div>
+                          <Label htmlFor="su-name">Your name</Label>
+                          <Input id="su-name" name="name" required />
+                        </div>
+                        <div>
+                          <Label htmlFor="su-email">Email</Label>
+                          <Input id="su-email" name="email" type="email" required />
+                        </div>
+                        <div>
+                          <Label htmlFor="su-password">Password</Label>
+                          <Input
+                            id="su-password"
+                            name="password"
+                            type="password"
+                            required
+                            minLength={6}
+                          />
+                        </div>
+                        <Button type="submit" className="w-full" disabled={loading}>
+                          Create account
+                        </Button>
+                      </form>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

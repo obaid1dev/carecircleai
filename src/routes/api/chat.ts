@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { getUserFromRequest } from "@/integrations/supabase/request-user.server";
+import { checkFeatureLimit } from "@/lib/subscription/plans";
+import { incrementUsage, loadUsageAndPlan } from "@/lib/subscription/usage.server";
 
 const SYSTEM_PROMPT = `You are CareCircle, a warm, patient AI companion for an elderly user doing their daily check-in.
 
@@ -25,6 +28,30 @@ export const Route = createFileRoute("/api/chat")({
         }
         const key = process.env.OPENROUTER_API_KEY;
         if (!key) return new Response("Missing OPENROUTER_API_KEY", { status: 500 });
+
+        // Authenticate and enforce plan limits server-side (never trust the frontend).
+        const user = await getUserFromRequest(request);
+        if (!user) {
+          return new Response(JSON.stringify({ error: "unauthorized" }), {
+            status: 401,
+            headers: { "content-type": "application/json" },
+          });
+        }
+        const { plan, isPro, usage } = await loadUsageAndPlan(user.supabase, user.userId);
+        if (!checkFeatureLimit("ai_conversations", { plan, isPro }, usage.ai_conversations)) {
+          return new Response(
+            JSON.stringify({
+              error: "limit_reached",
+              message:
+                "Your free limit has been reached. Upgrade to CareCircleAI Pro for unlimited access.",
+            }),
+            { status: 402, headers: { "content-type": "application/json" } },
+          );
+        }
+
+        // Reserve the conversation slot before streaming so parallel/burst calls
+        // are also counted.
+        await incrementUsage(user.supabase, user.userId, "ai_conversations");
 
         const gateway = createLovableAiGatewayProvider(key);
         const system = userName

@@ -3,14 +3,18 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, Send, CheckCircle2, Mic, MicOff, AlertCircle } from "lucide-react";
+import { Heart, Send, CheckCircle2, Mic, MicOff, AlertCircle, Crown, Zap } from "lucide-react";
 import { getProfile } from "@/lib/data.functions";
 import { finishCheckin } from "@/lib/checkins.functions";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useSubscriptionContext } from "@/lib/subscription/subscription-provider";
+import { PLANS } from "@/lib/subscription/plans";
 
 export const Route = createFileRoute("/_authenticated/chat")({
   head: () => ({ meta: [{ title: "Daily check-in · CareCircle" }] }),
@@ -20,6 +24,7 @@ export const Route = createFileRoute("/_authenticated/chat")({
 function ChatPage() {
   const router = useRouter();
   const profile = useQuery({ queryKey: ["profile"], queryFn: () => getProfile() });
+  const { subscription, isPro, openPaywall, refresh } = useSubscriptionContext();
   const [input, setInput] = useState("");
   const [finishing, setFinishing] = useState(false);
   const [summary, setSummary] = useState<null | {
@@ -36,10 +41,17 @@ function ChatPage() {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const silenceTimerRef = useRef<number>();
 
+  const chatLimit = PLANS.free.limits.ai_conversations;
+  const chatUsed = subscription?.usage.ai_conversations ?? 0;
+
   const { messages, sendMessage, status, setMessages } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
       body: { userName: profile.data?.name },
+      headers: async () => {
+        const { data } = await supabase.auth.getSession();
+        return { Authorization: `Bearer ${data.session?.access_token ?? ""}` };
+      },
     }),
     messages: [
       {
@@ -54,12 +66,18 @@ function ChatPage() {
       },
     ],
     onResponse: ({ response }) => {
-      if (!response.ok) {
+      if (response.status === 402) {
+        openPaywall();
+        toast.error(
+          "Your free limit has been reached. Upgrade to CareCircleAI Pro for unlimited access.",
+        );
+      } else if (!response.ok) {
         const errorText = response.statusText || "Failed to get AI response";
         toast.error(`AI error: ${errorText}`);
       }
     },
     onFinish: ({ message }) => {
+      void refresh();
       // Ensure AI messages always have content
       if (message.role === "assistant") {
         const text = message.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
@@ -72,7 +90,12 @@ function ChatPage() {
                 ...prev.slice(0, -1),
                 {
                   ...message,
-                  parts: [{ type: "text", text: "I'm here with you. Could you tell me a bit more about how you're feeling?" }],
+                  parts: [
+                    {
+                      type: "text",
+                      text: "I'm here with you. Could you tell me a bit more about how you're feeling?",
+                    },
+                  ],
                 },
               ];
             }
@@ -204,6 +227,7 @@ function ChatPage() {
   }, [isListening, interimTranscript, stopListening]);
 
   const isLoading = status === "submitted" || status === "streaming";
+  const blocked = !isPro && chatUsed >= chatLimit;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -213,6 +237,17 @@ function ChatPage() {
   };
 
   const finish = async () => {
+    if (!isPro) {
+      const checkinLimit = PLANS.free.limits.daily_checkins;
+      const used = subscription?.usage.checkins ?? 0;
+      if (used >= checkinLimit) {
+        openPaywall();
+        toast.error(
+          "Your free limit has been reached. Upgrade to CareCircleAI Pro for unlimited access.",
+        );
+        return;
+      }
+    }
     setFinishing(true);
     try {
       const flat = messages.map((m) => ({
@@ -222,8 +257,16 @@ function ChatPage() {
       const result = await finishCheckin({ data: { messages: flat } });
       setSummary(result);
       toast.success("Check-in saved");
+      void refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save");
+      if (err instanceof Error && err.message.startsWith("LIMIT_REACHED")) {
+        openPaywall();
+        toast.error(
+          "Your free limit has been reached. Upgrade to CareCircleAI Pro for unlimited access.",
+        );
+      } else {
+        toast.error(err instanceof Error ? err.message : "Failed to save");
+      }
     } finally {
       setFinishing(false);
     }
@@ -232,29 +275,48 @@ function ChatPage() {
   if (summary) {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
-        <Card className="p-8 text-center bg-primary/5 border-primary/20">
-          <CheckCircle2 className="w-16 h-16 text-primary mx-auto mb-4" />
-          <h1 className="text-2xl font-bold">Thank you for checking in</h1>
-          <p className="text-muted-foreground mt-2">Your family will see this summary.</p>
-        </Card>
-        <Card className="p-6 space-y-4">
-          <div>
-            <p className="text-sm text-muted-foreground">Today's summary</p>
-            <p className="mt-1">{summary.summary}</p>
-          </div>
-          <div className="flex gap-3 pt-2 border-t">
-            <div className="flex-1">
-              <p className="text-xs text-muted-foreground">Mood</p>
-              <p className="text-xl font-semibold">{summary.mood_score}/10</p>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "spring", damping: 24, stiffness: 280 }}
+        >
+          <Card className="p-8 text-center glass-strong rounded-3xl border-transparent shadow-2xl shadow-black/10 dark:shadow-black/40">
+            <motion.div
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", damping: 14, delay: 0.1 }}
+              className="w-16 h-16 mx-auto mb-4 gradient-primary rounded-full flex items-center justify-center shadow-lg shadow-emerald-700/30"
+            >
+              <CheckCircle2 className="w-8 h-8 text-white" />
+            </motion.div>
+            <h1 className="text-2xl font-bold">Thank you for checking in</h1>
+            <p className="text-muted-foreground mt-2">Your family will see this summary.</p>
+          </Card>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+        >
+          <Card className="p-6 space-y-4 glass rounded-2xl">
+            <div>
+              <p className="text-sm text-muted-foreground">Today's summary</p>
+              <p className="mt-1">{summary.summary}</p>
             </div>
-            <div className="flex-1">
-              <p className="text-xs text-muted-foreground">Risk level</p>
-              <p className={`text-xl font-semibold capitalize ${riskColor(summary.risk_level)}`}>
-                {summary.risk_level}
-              </p>
+            <div className="flex gap-3 pt-2 border-t border-border/60">
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground">Mood</p>
+                <p className="text-xl font-semibold">{summary.mood_score}/10</p>
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground">Risk level</p>
+                <p className={`text-xl font-semibold capitalize ${riskColor(summary.risk_level)}`}>
+                  {summary.risk_level}
+                </p>
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </motion.div>
         <Button className="w-full" size="lg" onClick={() => router.navigate({ to: "/dashboard" })}>
           Back to home
         </Button>
@@ -265,10 +327,10 @@ function ChatPage() {
   const displayInput = input + interimTranscript;
 
   return (
-    <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-10rem)]">
+    <div className="max-w-2xl mx-auto flex flex-col h-[calc(100dvh-13rem)] min-h-[24rem] md:h-[calc(100dvh-8rem)] md:min-h-0">
       <div className="flex items-center gap-3 pb-4">
-        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-          <Heart className="w-5 h-5 text-primary" fill="currentColor" />
+        <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center shadow-lg shadow-emerald-700/30">
+          <Heart className="w-5 h-5 text-white" fill="currentColor" />
         </div>
         <div>
           <p className="font-semibold">CareCircle</p>
@@ -276,67 +338,98 @@ function ChatPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-3 pb-4">
-        {messages.map((m) => {
-          const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
-          const isUser = String(m.role) === "user";
-          return (
-            <div key={m.id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
-              <div
-                className={`max-w-[85%] px-4 py-3 rounded-2xl text-base ${
-                  isUser
-                    ? "bg-primary text-primary-foreground rounded-tr-sm"
-                    : "bg-card border rounded-tl-sm"
-                }`}
+      <div className="flex-1 overflow-y-auto space-y-3 pb-4 scrollbar-hide">
+        <AnimatePresence initial={false}>
+          {messages.map((m) => {
+            const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
+            const isUser = String(m.role) === "user";
+            return (
+              <motion.div
+                key={m.id}
+                layout
+                initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: "spring", damping: 26, stiffness: 320 }}
+                className={`flex ${isUser ? "justify-end" : "justify-start"}`}
               >
-                {isUser ? (
-                  <p>{text || " "}</p>
-                ) : (
-                  <div className="prose prose-sm max-w-none">
-                    <ReactMarkdown>{text || "I'm listening..."}</ReactMarkdown>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
+                <div
+                  className={`max-w-[85%] px-4 py-3 rounded-2xl text-base ${
+                    isUser
+                      ? "bg-gradient-to-br from-primary to-emerald-600 text-white rounded-tr-sm shadow-lg shadow-emerald-900/20"
+                      : "glass-strong rounded-tl-sm"
+                  }`}
+                >
+                  {isUser ? (
+                    <p>{text || " "}</p>
+                  ) : (
+                    <div className="prose prose-sm max-w-none">
+                      <ReactMarkdown>{text || "I'm listening..."}</ReactMarkdown>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
         {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-card border px-4 py-3 rounded-2xl rounded-tl-sm">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex justify-start"
+          >
+            <div className="glass-strong px-4 py-3 rounded-2xl rounded-tl-sm">
               <span className="inline-flex gap-1">
                 <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
                 <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:120ms]" />
                 <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:240ms]" />
               </span>
             </div>
-          </div>
+          </motion.div>
         )}
         <div ref={endRef} />
       </div>
 
       <div className="border-t pt-4 space-y-3">
+        {!isPro && (
+          <div className="flex items-center justify-between gap-2 flex-wrap rounded-xl glass px-4 py-2.5 text-sm">
+            <span className="text-muted-foreground">
+              {blocked
+                ? "Your free limit has been reached."
+                : `You've used ${chatUsed} of ${chatLimit} AI chats today.`}
+            </span>
+            {blocked ? (
+              <Button size="sm" onClick={() => openPaywall()}>
+                <Crown className="w-3.5 h-3.5" /> Upgrade
+              </Button>
+            ) : (
+              <span className="flex items-center gap-1 text-primary font-medium">
+                <Zap className="w-3.5 h-3.5" /> {chatLimit - chatUsed} left today
+              </span>
+            )}
+          </div>
+        )}
         <form onSubmit={submit} className="flex gap-2">
           <Input
             value={displayInput}
             onChange={(e) => setInput(e.target.value.replace(interimTranscript, ""))}
-            placeholder="Type your reply..."
+            placeholder={blocked ? "Free limit reached" : "Type your reply..."}
             className="text-base h-12 flex-1"
-            disabled={isLoading}
+            disabled={isLoading || blocked}
           />
           <Button
             type="button"
             size="lg"
             variant={isListening ? "destructive" : "outline"}
             onClick={toggleListening}
-            disabled={!isSupported || isLoading}
+            disabled={!isSupported || isLoading || blocked}
             aria-label={isListening ? "Stop listening" : "Start voice input"}
             className={isListening ? "animate-pulse" : ""}
             title={
               !isSupported
                 ? "Voice input not supported in this browser"
                 : isListening
-                ? "Stop listening"
-                : "Start voice input"
+                  ? "Stop listening"
+                  : "Start voice input"
             }
           >
             {isListening ? (
@@ -350,7 +443,7 @@ function ChatPage() {
               <Mic className="w-4 h-4" />
             )}
           </Button>
-          <Button type="submit" size="lg" disabled={isLoading || !displayInput.trim()}>
+          <Button type="submit" size="lg" disabled={isLoading || !displayInput.trim() || blocked}>
             <Send className="w-4 h-4" />
           </Button>
         </form>

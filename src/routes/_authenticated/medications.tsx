@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Crown, Pill } from "lucide-react";
 import {
   listMedications,
   addMedication,
@@ -20,7 +20,10 @@ import {
   markMedicationTaken,
 } from "@/lib/data.functions";
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { useSubscriptionContext } from "@/lib/subscription/subscription-provider";
+import { PLANS } from "@/lib/subscription/plans";
 
 export const Route = createFileRoute("/_authenticated/medications")({
   head: () => ({ meta: [{ title: "Medications · CareCircle" }] }),
@@ -31,6 +34,7 @@ function MedsPage() {
   const qc = useQueryClient();
   const meds = useQuery({ queryKey: ["meds"], queryFn: () => listMedications() });
   const [open, setOpen] = useState(false);
+  const { guard, isPro, openPaywall, isLimitError } = useSubscriptionContext();
 
   const add = useMutation({
     mutationFn: (v: { medicine_name: string; dosage?: string; reminder_time: string }) =>
@@ -39,6 +43,9 @@ function MedsPage() {
       qc.invalidateQueries({ queryKey: ["meds"] });
       setOpen(false);
       toast.success("Medication added");
+    },
+    onError: (err) => {
+      if (isLimitError(err)) openPaywall();
     },
   });
 
@@ -54,6 +61,7 @@ function MedsPage() {
 
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!guard("medications", list.length)) return;
     const fd = new FormData(e.currentTarget);
     add.mutate({
       medicine_name: String(fd.get("name")),
@@ -64,19 +72,31 @@ function MedsPage() {
 
   const list = meds.data ?? [];
   const taken = list.filter((m) => m.taken_today).length;
+  const medLimit = PLANS.free.limits.medications;
+  const atLimit = !isPro && list.length >= medLimit;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Medications</h1>
-          <p className="text-muted-foreground">
-            {taken} of {list.length} taken today
-          </p>
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="flex items-center justify-between"
+      >
+        <div className="flex items-center gap-3">
+          <span className="inline-flex w-11 h-11 items-center justify-center rounded-2xl gradient-primary shadow-lg shadow-emerald-700/25">
+            <Pill className="w-5 h-5 text-white" />
+          </span>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Medications</h1>
+            <p className="text-muted-foreground">
+              {taken} of {list.length} taken today
+            </p>
+          </div>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="lg">
+            <Button size="lg" disabled={atLimit}>
               <Plus className="mr-2 w-4 h-4" />
               Add
             </Button>
@@ -104,43 +124,64 @@ function MedsPage() {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+      </motion.div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Today</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {list.length === 0 && (
-            <p className="text-muted-foreground text-center py-8">
-              No medications yet. Add one to start tracking.
-            </p>
+      {!isPro && (
+        <div className="flex items-center justify-between gap-2 flex-wrap rounded-xl glass px-4 py-2.5 text-sm">
+          <span className="text-muted-foreground">
+            {atLimit
+              ? "Your free limit has been reached."
+              : `You've added ${list.length} of ${medLimit} free medications.`}
+          </span>
+          {atLimit && (
+            <Button size="sm" onClick={() => openPaywall()}>
+              <Crown className="w-3.5 h-3.5" /> Upgrade
+            </Button>
           )}
-          {list.map((m) => (
-            <div key={m.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary">
-              <Checkbox
-                checked={m.taken_today}
-                onCheckedChange={(v) => toggle.mutate({ medication_id: m.id, taken: Boolean(v) })}
-                className="w-6 h-6"
-              />
-              <div className="flex-1">
-                <p
-                  className={`font-medium text-lg ${m.taken_today ? "line-through opacity-60" : ""}`}
-                >
-                  {m.medicine_name}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {m.dosage ? `${m.dosage} · ` : ""}
-                  {m.reminder_time?.slice(0, 5)}
-                </p>
+        </div>
+      )}
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, delay: 0.1 }}
+      >
+        <Card className="glass rounded-2xl">
+          <CardHeader>
+            <CardTitle>Today</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {list.length === 0 && (
+              <p className="text-muted-foreground text-center py-8">
+                No medications yet. Add one to start tracking.
+              </p>
+            )}
+            {list.map((m) => (
+              <div key={m.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/60">
+                <Checkbox
+                  checked={m.taken_today}
+                  onCheckedChange={(v) => toggle.mutate({ medication_id: m.id, taken: Boolean(v) })}
+                  className="w-6 h-6"
+                />
+                <div className="flex-1">
+                  <p
+                    className={`font-medium text-lg ${m.taken_today ? "line-through opacity-60" : ""}`}
+                  >
+                    {m.medicine_name}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {m.dosage ? `${m.dosage} · ` : ""}
+                    {m.reminder_time?.slice(0, 5)}
+                  </p>
+                </div>
+                <Button size="icon" variant="ghost" onClick={() => del.mutate(m.id)}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
               </div>
-              <Button size="icon" variant="ghost" onClick={() => del.mutate(m.id)}>
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+            ))}
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }

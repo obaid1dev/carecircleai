@@ -7,10 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getProfile, updateProfile } from "@/lib/data.functions";
 import { motion } from "framer-motion";
-import { UserRound, Siren, HeartPulse, LogOut } from "lucide-react";
+import { UserRound, Siren, HeartPulse, LogOut, CreditCard, ExternalLink, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { MemoryManager } from "@/components/subscription/MemoryManager";
+import { useSubscriptionContext } from "@/lib/subscription/subscription-provider";
+import { PLANS } from "@/lib/subscription/plans";
+import { useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({ meta: [{ title: "Profile · CareCircle" }] }),
@@ -21,6 +24,8 @@ function ProfilePage() {
   const qc = useQueryClient();
   const router = useRouter();
   const profile = useQuery({ queryKey: ["profile"], queryFn: () => getProfile() });
+  const { subscription, isPro, openPaywall, refresh } = useSubscriptionContext();
+  const [portalLoading, setPortalLoading] = useState(false);
 
   const save = useMutation({
     mutationFn: (v: {
@@ -158,6 +163,91 @@ function ProfilePage() {
           Save changes
         </Button>
       </form>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, delay: 0.12 }}
+      >
+        <Card className="glass rounded-2xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <span className="inline-flex w-8 h-8 items-center justify-center rounded-lg gradient-primary shadow-md shadow-emerald-700/25">
+                <CreditCard className="w-4 h-4 text-white" />
+              </span>{" "}
+              Subscription
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">
+                  Current plan:{" "}
+                  <span className={isPro ? "text-emerald-600 dark:text-emerald-400" : ""}>
+                    {isPro ? PLANS.pro.name : PLANS.free.name}
+                  </span>
+                </p>
+                {isPro && subscription?.currentPeriodEnd && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {subscription.cancelAtPeriodEnd
+                      ? `Access until ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`
+                      : `Renews ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`}
+                  </p>
+                )}
+                {!isPro && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {PLANS.free.tagline}
+                  </p>
+                )}
+              </div>
+            </div>
+            {isPro ? (
+              <Button
+                variant="outline"
+                className="w-full rounded-xl"
+                disabled={portalLoading}
+                onClick={async () => {
+                  setPortalLoading(true);
+                  try {
+                    const { data: session } = await supabase.auth.getSession();
+                    const res = await fetch("/api/paddle/portal", {
+                      method: "POST",
+                      headers: {
+                        Authorization: `Bearer ${session.session?.access_token ?? ""}`,
+                      },
+                    });
+                    const body = await res.json();
+                    if (!res.ok || !body.url) {
+                      toast.error(body.message || "Failed to open subscription portal.");
+                      return;
+                    }
+                    window.location.href = body.url;
+                  } catch {
+                    toast.error("Network error. Please try again.");
+                  } finally {
+                    setPortalLoading(false);
+                  }
+                }}
+              >
+                {portalLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <ExternalLink className="w-4 h-4" />
+                )}
+                Manage Subscription
+              </Button>
+            ) : (
+              <Button
+                className="w-full rounded-xl"
+                onClick={() => openPaywall("Upgrade to CareCircleAI Pro", "Unlock unlimited access to all features.")}
+              >
+                <CreditCard className="w-4 h-4" />
+                Upgrade to Pro
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}

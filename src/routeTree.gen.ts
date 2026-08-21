@@ -11,7 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as RefundsRouteImport } from './routes/refunds'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedAppointmentsRouteImport } from './routes/_authenticated/appointments'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -19,6 +24,7 @@ import { Route as AuthenticatedFamilyRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedMedicationsRouteImport } from './routes/_authenticated/medications'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiPaddlePortalRouteImport } from './routes/api/paddle/portal'
 import { Route as ApiPaddleWebhookRouteImport } from './routes/api/paddle/webhook'
 
 const IndexRoute = IndexRouteImport.update({
@@ -30,9 +36,34 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefundsRoute = RefundsRouteImport.update({
+  id: '/refunds',
+  path: '/refunds',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAppointmentsRoute =
@@ -72,6 +103,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPaddlePortalRoute = ApiPaddlePortalRouteImport.update({
+  id: '/api/paddle/portal',
+  path: '/api/paddle/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPaddleWebhookRoute = ApiPaddleWebhookRouteImport.update({
   id: '/api/paddle/webhook',
   path: '/api/paddle/webhook',
@@ -80,7 +116,12 @@ const ApiPaddleWebhookRoute = ApiPaddleWebhookRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/contact': typeof ContactRoute
+  '/privacy': typeof PrivacyRoute
+  '/refunds': typeof RefundsRoute
+  '/terms': typeof TermsRoute
   '/appointments': typeof AuthenticatedAppointmentsRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -88,11 +129,17 @@ export interface FileRoutesByFullPath {
   '/medications': typeof AuthenticatedMedicationsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/paddle/portal': typeof ApiPaddlePortalRoute
   '/api/paddle/webhook': typeof ApiPaddleWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/contact': typeof ContactRoute
+  '/privacy': typeof PrivacyRoute
+  '/refunds': typeof RefundsRoute
+  '/terms': typeof TermsRoute
   '/appointments': typeof AuthenticatedAppointmentsRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -100,13 +147,19 @@ export interface FileRoutesByTo {
   '/medications': typeof AuthenticatedMedicationsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/paddle/portal': typeof ApiPaddlePortalRoute
   '/api/paddle/webhook': typeof ApiPaddleWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/contact': typeof ContactRoute
+  '/privacy': typeof PrivacyRoute
+  '/refunds': typeof RefundsRoute
+  '/terms': typeof TermsRoute
   '/_authenticated/appointments': typeof AuthenticatedAppointmentsRoute
   '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -114,13 +167,19 @@ export interface FileRoutesById {
   '/_authenticated/medications': typeof AuthenticatedMedicationsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/paddle/portal': typeof ApiPaddlePortalRoute
   '/api/paddle/webhook': typeof ApiPaddleWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/auth'
+    | '/contact'
+    | '/privacy'
+    | '/refunds'
+    | '/terms'
     | '/appointments'
     | '/chat'
     | '/dashboard'
@@ -128,11 +187,17 @@ export interface FileRouteTypes {
     | '/medications'
     | '/profile'
     | '/api/chat'
+    | '/api/paddle/portal'
     | '/api/paddle/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/auth'
+    | '/contact'
+    | '/privacy'
+    | '/refunds'
+    | '/terms'
     | '/appointments'
     | '/chat'
     | '/dashboard'
@@ -140,12 +205,18 @@ export interface FileRouteTypes {
     | '/medications'
     | '/profile'
     | '/api/chat'
+    | '/api/paddle/portal'
     | '/api/paddle/webhook'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/about'
     | '/auth'
+    | '/contact'
+    | '/privacy'
+    | '/refunds'
+    | '/terms'
     | '/_authenticated/appointments'
     | '/_authenticated/chat'
     | '/_authenticated/dashboard'
@@ -153,14 +224,21 @@ export interface FileRouteTypes {
     | '/_authenticated/medications'
     | '/_authenticated/profile'
     | '/api/chat'
+    | '/api/paddle/portal'
     | '/api/paddle/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
+  ContactRoute: typeof ContactRoute
+  PrivacyRoute: typeof PrivacyRoute
+  RefundsRoute: typeof RefundsRoute
+  TermsRoute: typeof TermsRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiPaddlePortalRoute: typeof ApiPaddlePortalRoute
   ApiPaddleWebhookRoute: typeof ApiPaddleWebhookRoute
 }
 
@@ -180,11 +258,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refunds': {
+      id: '/refunds'
+      path: '/refunds'
+      fullPath: '/refunds'
+      preLoaderRoute: typeof RefundsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/appointments': {
@@ -236,6 +349,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/paddle/portal': {
+      id: '/api/paddle/portal'
+      path: '/api/paddle/portal'
+      fullPath: '/api/paddle/portal'
+      preLoaderRoute: typeof ApiPaddlePortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/paddle/webhook': {
       id: '/api/paddle/webhook'
       path: '/api/paddle/webhook'
@@ -270,8 +390,14 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
+  ContactRoute: ContactRoute,
+  PrivacyRoute: PrivacyRoute,
+  RefundsRoute: RefundsRoute,
+  TermsRoute: TermsRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiPaddlePortalRoute: ApiPaddlePortalRoute,
   ApiPaddleWebhookRoute: ApiPaddleWebhookRoute,
 }
 export const routeTree = rootRouteImport

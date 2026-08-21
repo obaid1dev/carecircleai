@@ -5,6 +5,7 @@ import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import { PricingSection } from "@/components/pricing/PricingSection";
 import { useTheme } from "@/lib/theme-provider";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -41,6 +42,20 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   const { theme, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    const onHashChange = () => {
+      const id = window.location.hash.slice(1);
+      if (id) {
+        requestAnimationFrame(() => {
+          document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+        });
+      }
+    };
+    onHashChange();
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -182,37 +197,43 @@ function Landing() {
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
+                id: "daily-checkin",
                 icon: MessageCircle,
                 title: "Daily AI check-in",
                 desc: "A warm conversation each morning to see how they're doing.",
               },
               {
+                id: "medication-tracking",
                 icon: Pill,
                 title: "Medication reminders",
                 desc: "Never miss a dose. Adherence is tracked for the family.",
               },
               {
+                id: "appointment-tracking",
                 icon: Calendar,
                 title: "Appointment tracking",
                 desc: "Doctor visits stay on the calendar for everyone.",
               },
               {
+                id: "smart-alerts",
                 icon: ShieldAlert,
                 title: "Smart alerts",
                 desc: "Family is notified early if something seems off.",
               },
               {
+                id: "family-dashboard",
                 icon: Users,
                 title: "Family dashboard",
                 desc: "Mood trends, summaries, and a shared view of wellbeing.",
               },
               {
+                id: "never-replaces-care",
                 icon: Heart,
                 title: "Never replaces care",
                 desc: "An early warning system, not a diagnosis. Always kind.",
               },
             ].map((f) => (
-              <div key={f.title} className="glass card-hover p-6 rounded-2xl">
+              <div id={f.id} key={f.title} className="glass card-hover p-6 rounded-2xl">
                 <span className="inline-flex w-10 h-10 items-center justify-center rounded-xl gradient-primary shadow-md shadow-emerald-700/25 mb-3">
                   <f.icon className="w-5 h-5 text-white" />
                 </span>
@@ -244,27 +265,27 @@ function Landing() {
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
+                  <a href="/#daily-checkin" className="hover:text-foreground transition-colors">
                     Daily Check-in
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
+                  <a href="/#medication-tracking" className="hover:text-foreground transition-colors">
                     Medication Tracking
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
+                  <a href="/#family-dashboard" className="hover:text-foreground transition-colors">
                     Family Dashboard
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
+                  <a href="/#smart-alerts" className="hover:text-foreground transition-colors">
                     Smart Alerts
                   </a>
                 </li>
                 <li>
-                  <a href="#pricing" className="hover:text-foreground transition-colors">
+                  <a href="/#pricing" className="hover:text-foreground transition-colors">
                     Pricing
                   </a>
                 </li>
@@ -274,29 +295,14 @@ function Landing() {
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
+                  <Link to="/about" className="hover:text-foreground transition-colors">
                     About Us
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Blog
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Careers
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Press
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
+                  <Link to="/contact" className="hover:text-foreground transition-colors">
                     Contact
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -304,29 +310,19 @@ function Landing() {
               <h4 className="font-semibold mb-4">Resources</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Help Center
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
+                  <Link to="/privacy" className="hover:text-foreground transition-colors">
                     Privacy Policy
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
+                  <Link to="/terms" className="hover:text-foreground transition-colors">
                     Terms of Service
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    HIPAA Compliance
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground transition-colors">
-                    Accessibility
-                  </a>
+                  <Link to="/refunds" className="hover:text-foreground transition-colors">
+                    Refund &amp; Cancellation Policy
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -334,40 +330,9 @@ function Landing() {
           <div className="border-t border-border pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <p className="text-sm text-muted-foreground text-center md:text-left">
-                © {new Date().getFullYear()} CareCircle. Not a medical device. Always consult a
+                &copy; {new Date().getFullYear()} CareCircle. Not a medical device. Always consult a
                 healthcare professional.
               </p>
-              <div className="flex items-center gap-6">
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label="Twitter"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z" />
-                  </svg>
-                </a>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label="LinkedIn"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                  </svg>
-                </a>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label="Instagram"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-                  </svg>
-                </a>
-              </div>
             </div>
           </div>
         </div>

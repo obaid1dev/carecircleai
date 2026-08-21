@@ -60,7 +60,9 @@ But do NOT follow this as a rigid script. If the user jumps to a topic, follow t
 - Do NOT treat every message as if you're starting fresh.
 - Do NOT ignore what the user just said.
 - Do NOT use the phrase "I'm here with you" at the start of every message.
-- Do NOT ask questions you already asked.</think>export function buildSystemPrompt(
+- Do NOT ask questions you already asked.`;
+
+export function buildSystemPrompt(
   userName?: string | null,
   memoryContext?: string,
 ): string {

@@ -4,24 +4,25 @@ import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import { getUserFromRequest } from "@/integrations/supabase/request-user.server";
 import { checkFeatureLimit } from "@/lib/subscription/plans";
 import { incrementUsage, loadUsageAndPlan } from "@/lib/subscription/usage.server";
-
-const SYSTEM_PROMPT = `You are CareCircle, a warm, patient AI companion for an elderly user doing their daily check-in.
-
-Your goals:
-- Greet them kindly by name if known. Keep messages short (1-3 sentences) and easy to read.
-- Ask, one at a time and naturally: how they're feeling, how they slept, whether they took their medications today, any pain or symptoms, and anything on their mind.
-- Listen empathetically. If they mention pain, dizziness, sadness, confusion, or falls, gently ask a follow-up.
-- Never diagnose. If they mention a serious symptom, encourage them to contact family or a doctor.
-- After about 5-8 exchanges, wrap up warmly and remind them their family cares about them.
-- Use plain language. No medical jargon. No lists unless helpful.`;
+import { buildSystemPrompt } from "@/lib/chat/system-prompt";
+import {
+  getOrCreateConversation,
+  saveMessage,
+  getConversationHistory,
+  getRecentConversations,
+} from "@/lib/chat/conversation.server";
+import { getMemories, buildMemoryContext } from "@/lib/chat/memory.server";
+import { extractAndStoreMemories } from "@/lib/chat/memory-extraction.server";
 
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const { messages, userName } = (await request.json()) as {
+        const { messages, userName, conversationId, newConversation } = (await request.json()) as {
           messages?: UIMessage[];
           userName?: string;
+          conversationId?: string;
+          newConversation?: boolean;
         };
         if (!Array.isArray(messages)) {
           return new Response("Messages are required", { status: 400 });
@@ -29,7 +30,7 @@ export const Route = createFileRoute("/api/chat")({
         const key = process.env.OPENROUTER_API_KEY;
         if (!key) return new Response("Missing OPENROUTER_API_KEY", { status: 500 });
 
-        // Authenticate and enforce plan limits server-side (never trust the frontend).
+        // Authenticate and enforce plan limits server-side.
         const user = await getUserFromRequest(request);
         if (!user) {
           return new Response(JSON.stringify({ error: "unauthorized" }), {
@@ -49,23 +50,96 @@ export const Route = createFileRoute("/api/chat")({
           );
         }
 
-        // Reserve the conversation slot before streaming so parallel/burst calls
-        // are also counted.
+        // Reserve the conversation slot before streaming.
         await incrementUsage(user.supabase, user.userId, "ai_conversations");
 
-        const gateway = createLovableAiGatewayProvider(key);
-        const system = userName
-          ? `${SYSTEM_PROMPT}\n\nThe user's name is ${userName}.`
-          : SYSTEM_PROMPT;
+        // --- Conversation persistence ---
+        let convId: string;
+        if (newConversation) {
+          convId = await getOrCreateConversation(user.supabase, user.userId);
+        } else if (conversationId) {
+          convId = await getOrCreateConversation(user.supabase, user.userId, conversationId);
+        } else {
+          // Reuse most recent conversation or create new
+          const recent = await getRecentConversations(user.supabase, user.userId, 1);
+          if (recent.length > 0) {
+            convId = recent[0].id;
+          } else {
+            convId = await getOrCreateConversation(user.supabase, user.userId);
+          }
+        }
 
+        // Save the latest user message to the database.
+        const lastUserMsg = messages.filter((m) => m.role === "user").at(-1);
+        if (lastUserMsg) {
+          const text = lastUserMsg.parts
+            ?.map((p) => (p.type === "text" ? p.text : ""))
+            .join("") ?? "";
+          if (text.trim()) {
+            await saveMessage(user.supabase, user.userId, convId, "user", text);
+          }
+        }
+
+        // Load conversation history from database for model context.
+        const history = await getConversationHistory(
+          user.supabase,
+          user.userId,
+          convId,
+        );
+
+        // Build model messages from database history (not from client).
+        const modelHistory = history.map((m) => ({
+          role: m.role as "user" | "assistant" | "system",
+          content: m.content,
+        }));
+
+        // Load user memories for context.
+        const memories = await getMemories(user.supabase, user.userId);
+        const memoryContext = buildMemoryContext(memories);
+
+        // Build system prompt with memories and user name.
+        const system = buildSystemPrompt(userName, memoryContext);
+
+        // Stream the AI response.
+        const gateway = createLovableAiGatewayProvider(key);
         const model = process.env.OPENROUTER_MODEL || "google/gemini-2.5-flash";
+
         const result = streamText({
           model: gateway(model),
           system,
-          messages: convertToModelMessages(messages),
+          messages: modelHistory,
+          onFinish: async ({ text }) => {
+            // Save the assistant response to the database.
+            if (text?.trim()) {
+              await saveMessage(user.supabase, user.userId, convId, "assistant", text);
+            }
+
+            // Extract memories asynchronously (don't block response).
+            const allMessages = history.concat(
+              lastUserMsg
+                ? [{
+                    role: "user" as const,
+                    content: lastUserMsg.parts
+                      ?.map((p) => (p.type === "text" ? p.text : ""))
+                      .join("") ?? "",
+                  }]
+                : [],
+            ).concat(
+              text?.trim()
+                ? [{ role: "assistant" as const, content: text }]
+                : [],
+            );
+            void extractAndStoreMemories(user.supabase, user.userId, allMessages);
+          },
         });
 
-        return result.toUIMessageStreamResponse({ originalMessages: messages });
+        // Return the stream along with the conversation ID for the client.
+        return result.toUIMessageStreamResponse({
+          originalMessages: messages,
+          headers: {
+            "X-Conversation-Id": convId,
+          },
+        });
       },
     },
   },

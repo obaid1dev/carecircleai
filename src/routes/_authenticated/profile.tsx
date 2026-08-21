@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import { UserRound, Siren, HeartPulse, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { MemoryManager } from "@/components/subscription/MemoryManager";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({ meta: [{ title: "Profile · CareCircle" }] }),
@@ -157,6 +158,14 @@ function ProfilePage() {
           Save changes
         </Button>
       </form>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, delay: 0.15 }}
+      >
+        <MemoryManager />
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}

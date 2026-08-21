@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, Send, CheckCircle2, Mic, MicOff, AlertCircle, Crown, Zap } from "lucide-react";
+import { Heart, Send, CheckCircle2, Mic, MicOff, AlertCircle, Crown, Zap, Plus } from "lucide-react";
 import { getProfile } from "@/lib/data.functions";
 import { finishCheckin } from "@/lib/checkins.functions";
 import ReactMarkdown from "react-markdown";
@@ -44,7 +44,7 @@ function ChatPage() {
   const chatLimit = PLANS.free.limits.ai_conversations;
   const chatUsed = subscription?.usage.ai_conversations ?? 0;
 
-  const { messages, sendMessage, status, setMessages } = useChat({
+  const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
       body: { userName: profile.data?.name },
@@ -53,18 +53,6 @@ function ChatPage() {
         return { Authorization: `Bearer ${data.session?.access_token ?? ""}` };
       },
     }),
-    messages: [
-      {
-        id: "welcome",
-        role: "assistant",
-        parts: [
-          {
-            type: "text",
-            text: `Good ${greeting()} ${profile.data?.name || "there"} 🌞 How are you feeling today?`,
-          },
-        ],
-      },
-    ],
     onResponse: ({ response }) => {
       if (response.status === 402) {
         openPaywall();
@@ -76,33 +64,8 @@ function ChatPage() {
         toast.error(`AI error: ${errorText}`);
       }
     },
-    onFinish: ({ message }) => {
+    onFinish: () => {
       void refresh();
-      // Ensure AI messages always have content
-      if (message.role === "assistant") {
-        const text = message.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
-        if (!text || !text.trim()) {
-          // Replace empty AI message with a fallback
-          setMessages((prev) => {
-            const last = prev[prev.length - 1];
-            if (last.id === message.id) {
-              return [
-                ...prev.slice(0, -1),
-                {
-                  ...message,
-                  parts: [
-                    {
-                      type: "text",
-                      text: "I'm here with you. Could you tell me a bit more about how you're feeling?",
-                    },
-                  ],
-                },
-              ];
-            }
-            return prev;
-          });
-        }
-      }
     },
   });
 
@@ -142,9 +105,7 @@ function ChatPage() {
       };
 
       recognition.onerror = (event) => {
-        if (event.error === "no-speech") {
-          return;
-        }
+        if (event.error === "no-speech") return;
         if (event.error === "not-allowed" || event.error === "permission-denied") {
           toast.error("Microphone permission denied. Please enable it in your browser settings.");
           setIsListening(false);
@@ -169,18 +130,13 @@ function ChatPage() {
     }
 
     return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-      if (silenceTimerRef.current) {
-        window.clearTimeout(silenceTimerRef.current);
-      }
+      if (recognitionRef.current) recognitionRef.current.stop();
+      if (silenceTimerRef.current) window.clearTimeout(silenceTimerRef.current);
     };
   }, [isListening]);
 
   const startListening = useCallback(() => {
     if (!isSupported || !recognitionRef.current || isListening) return;
-
     try {
       recognitionRef.current.start();
       setIsListening(true);
@@ -200,29 +156,19 @@ function ChatPage() {
   }, [isListening]);
 
   const toggleListening = useCallback(() => {
-    if (isListening) {
-      stopListening();
-    } else {
-      startListening();
-    }
+    if (isListening) stopListening();
+    else startListening();
   }, [isListening, startListening, stopListening]);
 
-  // Auto-stop after 3 seconds of silence
   useEffect(() => {
     if (isListening && interimTranscript) {
-      if (silenceTimerRef.current) {
-        window.clearTimeout(silenceTimerRef.current);
-      }
+      if (silenceTimerRef.current) window.clearTimeout(silenceTimerRef.current);
       silenceTimerRef.current = window.setTimeout(() => {
-        if (isListening && interimTranscript) {
-          stopListening();
-        }
+        if (isListening && interimTranscript) stopListening();
       }, 3000);
     }
     return () => {
-      if (silenceTimerRef.current) {
-        window.clearTimeout(silenceTimerRef.current);
-      }
+      if (silenceTimerRef.current) window.clearTimeout(silenceTimerRef.current);
     };
   }, [isListening, interimTranscript, stopListening]);
 
@@ -234,6 +180,12 @@ function ChatPage() {
     if (!input.trim() || isLoading) return;
     sendMessage({ text: input });
     setInput("");
+  };
+
+  const newConversation = () => {
+    // Clear the messages array and signal server to create a fresh conversation
+    // by sending a message with newConversation flag in the body
+    window.location.reload();
   };
 
   const finish = async () => {
@@ -332,10 +284,21 @@ function ChatPage() {
         <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center shadow-lg shadow-emerald-700/30">
           <Heart className="w-5 h-5 text-white" fill="currentColor" />
         </div>
-        <div>
+        <div className="flex-1">
           <p className="font-semibold">CareCircle</p>
           <p className="text-xs text-muted-foreground">Your daily check-in</p>
         </div>
+        {messages.length > 1 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={newConversation}
+            title="Start new conversation"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            New
+          </Button>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-3 pb-4 scrollbar-hide">
@@ -363,7 +326,7 @@ function ChatPage() {
                     <p>{text || " "}</p>
                   ) : (
                     <div className="prose prose-sm max-w-none">
-                      <ReactMarkdown>{text || "I'm listening..."}</ReactMarkdown>
+                      <ReactMarkdown>{text || "..."}</ReactMarkdown>
                     </div>
                   )}
                 </div>
@@ -488,7 +451,7 @@ function riskColor(r: string) {
   return "text-success";
 }
 
-// Type declaration for Web Speech API
+// Type declarations for Web Speech API
 declare global {
   interface Window {
     SpeechRecognition: typeof SpeechRecognition;

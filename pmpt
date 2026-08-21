@@ -1,0 +1,790 @@
+# CareCircle AI — Complete Conversation Intelligence & Persistent Memory Overhaul
+
+The CareCircle AI chat currently feels repetitive and does not properly maintain conversational context.
+
+I want you to fix the underlying AI architecture, not simply change the wording of responses.
+
+I also want to add a proper **persistent user memory system** so the AI can remember useful information across different conversations.
+
+## IMPORTANT: Before changing anything
+
+First inspect the entire existing AI architecture and Supabase database/migrations.
+
+Audit:
+
+* AI model/provider
+* AI API route
+* System prompt
+* Conversation history
+* Message storage
+* Conversation IDs
+* User context
+* AI response generation
+* Streaming
+* Fallback responses
+* Error handling
+* Token/history limits
+* Supabase schema
+* Existing migrations
+* Existing RLS policies
+* Existing user/subscription tables
+* Existing conversation tables
+
+Do not assume anything about the current architecture.
+
+Do not break existing functionality.
+
+---
+
+# PART 1 — FIX THE CURRENT AI CHAT
+
+Here is an actual CareCircle conversation:
+
+User:
+
+"hi"
+
+AI:
+
+"Hello Abdullahacc! How are you feeling today?"
+
+User:
+
+"im feeling a bit dizzy but im good"
+
+AI:
+
+"I'm here with you. Could you tell me a bit more about how you're feeling?"
+
+User:
+
+"feeling dizy"
+
+AI:
+
+"I'm here with you. Could you tell me a bit more about how you're feeling?"
+
+User:
+
+"dizzyyyy"
+
+AI:
+
+"I'm here with you. Could you tell me a bit more about how you're feeling?"
+
+This is NOT acceptable.
+
+The AI is repeating essentially the same generic response instead of understanding the user's conversation.
+
+## Goal
+
+Make CareCircle feel like a genuinely intelligent, natural, empathetic care companion.
+
+The AI must:
+
+* Understand the current conversation
+* Remember recent messages
+* Respond specifically to the latest message
+* Understand typos
+* Understand repeated/emphasized messages
+* Avoid repetitive responses
+* Ask useful follow-up questions
+* Maintain context
+* Handle topic changes naturally
+* Avoid sounding like a scripted chatbot
+
+---
+
+# PART 2 — AUDIT WHY RESPONSES ARE REPETITIVE
+
+Find the root cause.
+
+Inspect:
+
+* System prompt
+* Message history construction
+* API request payload
+* Model input
+* Conversation state
+* Database message retrieval
+* Frontend message state
+* Backend message state
+* Streaming implementation
+* Fallback responses
+* Caching
+* Any hard-coded responses
+* Intent detection
+* Symptom detection
+
+Determine whether the model is actually receiving the previous conversation messages.
+
+Do not simply assume it is.
+
+## The model should receive relevant conversation context
+
+For example:
+
+User:
+
+"I'm feeling dizzy."
+
+Then:
+
+"still dizzy"
+
+The second message should be understood as a continuation of the first.
+
+The AI should NOT behave as if "still dizzy" is a brand-new conversation.
+
+---
+
+# PART 3 — PROPER CONVERSATION HISTORY
+
+Every conversation should have a persistent conversation ID.
+
+Messages should retain:
+
+* conversation ID
+* user ID
+* role
+* message content
+* timestamp
+
+Roles should be represented correctly:
+
+* system
+* user
+* assistant
+
+When generating a response, provide the model with:
+
+1. System instructions
+2. Relevant persistent user memories
+3. Recent conversation history
+4. Current user message
+
+Do not only send the latest user message.
+
+Do not blindly send unlimited conversation history.
+
+If conversations become long, implement a sensible strategy such as:
+
+* recent-message window
+* conversation summary
+* relevant historical context
+
+Do not lose important context unnecessarily.
+
+---
+
+# PART 4 — NATURAL CONVERSATION BEHAVIOR
+
+The AI should respond to what the user actually said.
+
+Bad:
+
+User:
+"I'm dizzy."
+
+AI:
+"I'm here with you. Could you tell me a bit more about how you're feeling?"
+
+User:
+"still dizzy"
+
+AI:
+"I'm here with you. Could you tell me a bit more about how you're feeling?"
+
+This is repetitive.
+
+Better:
+
+User:
+
+"I'm feeling a bit dizzy but I'm good."
+
+AI:
+
+"I'm glad you're otherwise feeling okay. When did the dizziness start, and does it feel more like you're lightheaded or like the room is spinning?"
+
+Then:
+
+User:
+
+"feeling dizzy"
+
+AI:
+
+"Got you — the dizziness is still bothering you. Are you sitting somewhere safe right now?"
+
+Then:
+
+User:
+
+"dizzyyyy"
+
+AI:
+
+"I hear you 😅. Let's take it easy for a moment. Is it getting worse, getting better, or staying about the same?"
+
+The exact wording does NOT need to match these examples.
+
+The important thing is contextual understanding.
+
+---
+
+# PART 5 — CARECIRCLE SYSTEM PROMPT
+
+Create/improve the CareCircle system prompt.
+
+The AI should understand:
+
+"You are CareCircle, a supportive AI care companion. Your job is to have natural, context-aware conversations with the user, support daily check-ins, help organize care-related information, remember relevant information from the conversation, and provide safe general wellness guidance."
+
+Include rules such as:
+
+* Always consider recent conversation context.
+* Respond directly to the user's latest message.
+* Never repeat the same generic response unnecessarily.
+* Understand when a user is clarifying or emphasizing something.
+* Ask useful follow-up questions.
+* Avoid asking the same question repeatedly.
+* Do not diagnose medical conditions.
+* Do not pretend to be a doctor.
+* Do not give dangerous medical instructions.
+* For potentially serious symptoms, provide appropriate safety guidance.
+* Be empathetic without being repetitive.
+* Match the user's conversational tone.
+* Understand common typos.
+* Keep responses concise unless additional detail is useful.
+* Follow topic changes naturally.
+* Do not treat every message as a new daily check-in.
+
+---
+
+# PART 6 — PERSISTENT USER MEMORY
+
+Add a proper persistent memory system.
+
+The AI should remember useful information across different conversations.
+
+Example:
+
+Conversation 1:
+
+User:
+
+"My daughter Sara usually visits me on Sundays."
+
+Store a useful memory such as:
+
+"User's daughter is named Sara and usually visits on Sundays."
+
+Conversation 2, several days later:
+
+User:
+
+"Sara is coming tomorrow."
+
+The AI should understand who Sara is without requiring the user to explain again.
+
+---
+
+# PART 7 — FIRST CHECK THE EXISTING SUPABASE DATABASE
+
+Before creating SQL:
+
+Inspect all existing Supabase tables and migrations.
+
+Determine whether a suitable persistent memory table already exists.
+
+### If an appropriate table already exists:
+
+Reuse it.
+
+Do not create a duplicate memory system.
+
+### If no suitable table exists:
+
+Create a proper Supabase migration.
+
+Do NOT manually modify production database data.
+
+Create the migration file inside the repository.
+
+The migration should contain the required:
+
+* table
+* indexes
+* foreign keys where appropriate
+* Row Level Security
+* policies
+* timestamps
+
+Keep the memory system isolated from:
+
+* subscriptions
+* users
+* medications
+* appointments
+* Paddle data
+
+Do not delete or modify existing tables unnecessarily.
+
+---
+
+# PART 8 — MEMORY DATABASE DESIGN
+
+A suitable design may contain something similar to:
+
+memories:
+
+* id
+* user_id
+* memory
+* category
+* created_at
+* updated_at
+
+But do not blindly use this exact schema.
+
+Adapt it to the existing CareCircle database architecture.
+
+Every memory must belong to the authenticated user.
+
+Users must NEVER be able to access another user's memories.
+
+Use Supabase Row Level Security.
+
+---
+
+# PART 9 — WHAT SHOULD BE REMEMBERED
+
+Do NOT store every message as permanent memory.
+
+Only store information that is useful across future conversations.
+
+Good memory examples:
+
+* Preferred name
+* Family relationships
+* Stable preferences
+* Communication preferences
+* Recurring routines
+* User goals
+* Important non-sensitive personal context
+
+Example:
+
+User:
+
+"My name is Abdullah, but call me Abd."
+
+Memory:
+
+"User prefers to be called Abd."
+
+Example:
+
+User:
+
+"I usually go for a walk at 8 AM."
+
+Memory:
+
+"User usually goes for a walk around 8 AM."
+
+---
+
+# PART 10 — MEMORY SAFETY
+
+Do NOT automatically store sensitive information just because it appears in a conversation.
+
+Especially do not automatically create persistent memories for sensitive health information.
+
+If the user explicitly asks CareCircle to remember sensitive information, follow the application's existing privacy/data-handling architecture and only store it if the implementation securely supports it.
+
+Do not store trivial temporary statements such as:
+
+* "I'm bored."
+* "It's raining."
+* "lol."
+* Temporary moods
+* One-off comments
+
+---
+
+# PART 11 — MEMORY CREATION AND UPDATES
+
+After a conversation turn, determine whether the user explicitly provided useful information worth remembering.
+
+If yes:
+
+Create a concise memory.
+
+Do not store the entire conversation.
+
+Do not create duplicate memories.
+
+If a memory changes, update the existing memory rather than creating contradictory memories.
+
+Example:
+
+Old:
+
+"User prefers tea."
+
+New:
+
+"I've switched to coffee lately."
+
+Update the preference instead of storing both indefinitely.
+
+---
+
+# PART 12 — MEMORY RETRIEVAL
+
+Do NOT send the user's entire memory database to the model on every request.
+
+Retrieve only memories relevant to the current conversation.
+
+The AI context should conceptually be:
+
+SYSTEM PROMPT
++
+RELEVANT USER MEMORIES
++
+CURRENT CONVERSATION HISTORY
++
+CURRENT USER MESSAGE
+
+This should keep requests efficient and prevent irrelevant context from overwhelming the model.
+
+---
+
+# PART 13 — USER MEMORY CONTROLS
+
+Add a Memory section to CareCircle settings/profile.
+
+Users should be able to:
+
+* View saved memories
+* Delete individual memories
+* Clear all memories
+* Disable memory
+
+If practical, support commands such as:
+
+"Forget that."
+
+The user must remain in control of persistent memory.
+
+Do not hide persistent memory from the user.
+
+---
+
+# PART 14 — AUTHENTICATION AND SECURITY
+
+Because CareCircle uses Supabase:
+
+Every memory must be associated with the authenticated user's ID.
+
+Verify authentication server-side.
+
+Never trust a user-provided `user_id`.
+
+Never allow:
+
+User A → access User B's memories.
+
+Use Supabase RLS.
+
+Do not expose private memories through client-side JavaScript bundles.
+
+Do not put memories into public URLs.
+
+Do not put private memories into logs.
+
+---
+
+# PART 15 — DO NOT USE LOCALSTORAGE AS THE PRIMARY MEMORY
+
+Do NOT implement persistent memory as:
+
+"Save the entire conversation in browser localStorage."
+
+That is not sufficient.
+
+The persistent memory must live securely in Supabase so it survives:
+
+* New conversations
+* Logout/login
+* Different browser
+* Different device
+* Browser cache clearing
+
+Browser storage may be used only as an optional UI/cache layer, not as the source of truth.
+
+---
+
+# PART 16 — MEMORY PERFORMANCE
+
+For a normal AI message, aim for:
+
+1. Authenticate user.
+2. Load current conversation context.
+3. Retrieve relevant memories.
+4. Generate AI response.
+5. Save conversation messages.
+6. Create/update memory only when appropriate.
+
+Avoid unnecessary AI calls.
+
+If memory extraction requires another model call, make it efficient and asynchronous if possible so the user does not experience unnecessary chat latency.
+
+Do not make several AI requests for every message without a strong reason.
+
+---
+
+# PART 17 — HEALTH AND SAFETY
+
+CareCircle is a care companion.
+
+The AI must be supportive but must not diagnose.
+
+For symptoms:
+
+* Ask relevant clarifying questions.
+* Avoid claiming certainty.
+* Avoid pretending to be a healthcare professional.
+* Avoid unsafe medical instructions.
+* Encourage appropriate professional help when warranted.
+* For potentially urgent situations, clearly recommend seeking appropriate urgent/emergency assistance.
+
+Do not turn every minor symptom into an emergency.
+
+The AI should remain calm and proportionate.
+
+---
+
+# PART 18 — DO NOT BREAK EXISTING FEATURES
+
+Do not break:
+
+* Authentication
+* Google/email login
+* Daily check-ins
+* Medications
+* Appointments
+* AI chat
+* Conversation history
+* Supabase
+* Paddle
+* Subscription status
+* Free/Pro limits
+* Paywall
+* Vercel deployment
+
+Do not modify Paddle LIVE products, prices, customers, subscriptions, transactions, or webhook destinations.
+
+Do not change Paddle credentials.
+
+Do not change subscription gating unless required to fix an issue discovered during this audit.
+
+---
+
+# PART 19 — TEST THE AI
+
+After implementation, run these tests.
+
+## Test A — Normal conversation
+
+User:
+
+"hi"
+
+Then:
+
+"I'm feeling good today."
+
+Then:
+
+"I went outside."
+
+The AI should maintain context.
+
+## Test B — Repeated symptom
+
+User:
+
+"I'm feeling dizzy."
+
+Then:
+
+"still dizzy."
+
+Then:
+
+"dizzyyyy."
+
+Responses must NOT be identical.
+
+The AI should understand that all three messages concern the same ongoing symptom.
+
+## Test C — Typo
+
+User:
+
+"im realy tirde today"
+
+The AI should understand the likely meaning.
+
+## Test D — Pronoun/context
+
+User:
+
+"My appointment is tomorrow."
+
+Then:
+
+"I'm nervous about it."
+
+The AI should understand that "it" refers to the appointment.
+
+## Test E — Family context
+
+User:
+
+"My daughter is visiting tomorrow."
+
+Then:
+
+"I'm excited."
+
+The AI should understand why.
+
+## Test F — Topic change
+
+User:
+
+"I'm feeling tired."
+
+Then:
+
+"Anyway, what time is my appointment?"
+
+The AI should follow the topic change naturally.
+
+---
+
+# PART 20 — TEST PERSISTENT MEMORY
+
+Test:
+
+1. User says:
+   "My name is Abdullah, but call me Abd."
+
+2. Save the memory.
+
+3. Start a completely new conversation.
+
+4. Ask:
+   "How are you?"
+
+5. Confirm the AI can naturally use the remembered name.
+
+Then test:
+
+1. User provides a stable preference.
+2. Start a different conversation.
+3. Reference it indirectly.
+4. Confirm the AI understands the context.
+
+Also test:
+
+* Delete one memory
+* Clear all memories
+* Disable memory
+* Logout/login
+* Different browser/device if available
+* Multiple users
+
+Confirm that memory remains isolated per authenticated user.
+
+---
+
+# PART 21 — FINAL REPORT
+
+When finished, provide a concise report containing:
+
+## ROOT CAUSE
+
+Why the AI was repeating responses.
+
+## FILES CHANGED
+
+List every modified/created file.
+
+## CONVERSATION MEMORY
+
+Explain how conversation history is now maintained.
+
+## PERSISTENT MEMORY
+
+Explain how user memories are stored and retrieved.
+
+## DATABASE
+
+Tell me:
+
+* Whether an existing table was reused
+* Or whether a new SQL migration was created
+* Migration filename
+* Tables/indexes/RLS policies created
+
+If a migration needs to be manually applied to Supabase, clearly tell me.
+
+Do NOT tell me to manually run SQL if the project already has a safe migration workflow that can apply it.
+
+## SECURITY
+
+Confirm:
+
+* RLS enabled
+* Per-user isolation
+* Server-side authentication
+* No memory leakage between users
+
+## AI MODEL
+
+Report:
+
+* Current model/provider
+* Relevant configuration
+* Whether the existing model is sufficient
+
+Do not change the provider unless necessary.
+
+## TEST RESULTS
+
+Report results for every test above.
+
+## REMAINING ISSUES
+
+List anything that still needs attention.
+
+---
+
+# CRITICAL RULE
+
+Do not simply make the AI responses sound nicer.
+
+Fix the underlying architecture causing repetitive responses.
+
+Do not create a fake memory system.
+
+Implement real conversation history + secure persistent user memory + relevant memory retrieval.
+
+Before creating any SQL migration, inspect the existing Supabase schema/migrations and reuse existing infrastructure where appropriate.
+
+Do not break the existing CareCircle Paddle subscription/paywall system.

@@ -100,9 +100,12 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     setPaywallOpen(true);
   }, []);
 
-  const upgrade = useCallback(async (billing: BillingInterval = "monthly") => {
-    await handleUpgrade(billing, paddleCustomerId);
-  }, [paddleCustomerId]);
+  const upgrade = useCallback(
+    async (billing: BillingInterval = "monthly") => {
+      await handleUpgrade(billing, paddleCustomerId);
+    },
+    [paddleCustomerId],
+  );
 
   const guard = useCallback(
     (feature: FeatureKey, used = 0) => {

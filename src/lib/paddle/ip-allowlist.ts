@@ -44,9 +44,7 @@ const PADDLE_IPV4_CIDRS = [
 ];
 
 function ipToLong(ip: string): number {
-  return (
-    ip.split(".").reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0
-  );
+  return ip.split(".").reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0;
 }
 
 function cidrToRange(cidr: string): { start: number; end: number } {

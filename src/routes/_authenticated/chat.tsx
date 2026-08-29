@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+﻿import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -7,7 +7,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, Send, CheckCircle2, Mic, MicOff, AlertCircle, Crown, Zap, Plus } from "lucide-react";
+import {
+  Heart,
+  Send,
+  CheckCircle2,
+  Mic,
+  MicOff,
+  AlertCircle,
+  Crown,
+  Zap,
+  Plus,
+} from "lucide-react";
 import { getProfile } from "@/lib/data.functions";
 import { finishCheckin } from "@/lib/checkins.functions";
 import ReactMarkdown from "react-markdown";
@@ -237,9 +247,9 @@ function ChatPage() {
               initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", damping: 14, delay: 0.1 }}
-              className="w-16 h-16 mx-auto mb-4 gradient-primary rounded-full flex items-center justify-center shadow-lg shadow-emerald-700/30"
+              className="w-16 h-16 mx-auto mb-4 gradient-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg shadow-emerald-900/25"
             >
-              <CheckCircle2 className="w-8 h-8 text-white" />
+              <CheckCircle2 className="w-8 h-8" />
             </motion.div>
             <h1 className="text-2xl font-bold">Thank you for checking in</h1>
             <p className="text-muted-foreground mt-2">Your family will see this summary.</p>
@@ -281,8 +291,8 @@ function ChatPage() {
   return (
     <div className="max-w-2xl mx-auto flex flex-col h-[calc(100dvh-13rem)] min-h-[24rem] md:h-[calc(100dvh-8rem)] md:min-h-0">
       <div className="flex items-center gap-3 pb-4">
-        <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center shadow-lg shadow-emerald-700/30">
-          <Heart className="w-5 h-5 text-white" fill="currentColor" />
+        <div className="w-10 h-10 rounded-full gradient-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-emerald-900/25">
+          <Heart className="w-5 h-5" fill="currentColor" />
         </div>
         <div className="flex-1">
           <p className="font-semibold">CareCircle</p>
@@ -301,7 +311,11 @@ function ChatPage() {
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-3 pb-4 scrollbar-hide">
+      <div
+        className="flex-1 overflow-y-auto space-y-3 pb-4 scrollbar-hide"
+        aria-live="polite"
+        aria-label="Conversation messages"
+      >
         <AnimatePresence initial={false}>
           {messages.map((m) => {
             const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
@@ -318,7 +332,7 @@ function ChatPage() {
                 <div
                   className={`max-w-[85%] px-4 py-3 rounded-2xl text-base ${
                     isUser
-                      ? "bg-gradient-to-br from-primary to-emerald-600 text-white rounded-tr-sm shadow-lg shadow-emerald-900/20"
+                      ? "gradient-primary text-primary-foreground rounded-tr-sm shadow-lg shadow-emerald-900/20"
                       : "glass-strong rounded-tl-sm"
                   }`}
                 >
@@ -411,13 +425,16 @@ function ChatPage() {
           </Button>
         </form>
         {isListening && (
-          <div className="flex items-center gap-2 text-sm text-destructive animate-pulse">
-            <span className="w-2 h-2 bg-destructive rounded-full" />
+          <p
+            role="status"
+            className="flex items-center gap-2 text-sm text-destructive animate-pulse"
+          >
+            <span className="w-2 h-2 bg-destructive rounded-full" aria-hidden="true" />
             <span>Listening... Speak now</span>
             {interimTranscript && (
               <span className="text-muted-foreground">"{interimTranscript}"</span>
             )}
-          </div>
+          </p>
         )}
         {!isSupported && (
           <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -447,7 +464,7 @@ function greeting() {
 }
 function riskColor(r: string) {
   if (r === "high") return "text-destructive";
-  if (r === "medium") return "text-accent";
+  if (r === "medium") return "text-warning";
   return "text-success";
 }
 

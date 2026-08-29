@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -98,9 +98,9 @@ export function PaywallModal({
                 initial={{ scale: 0.6, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.08, type: "spring", damping: 14 }}
-                className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-primary via-emerald-500 to-accent-foreground flex items-center justify-center shadow-lg shadow-primary/30 mb-5"
+                className="mx-auto w-20 h-20 rounded-2xl gradient-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-emerald-900/25 mb-5"
               >
-                <Crown className="w-10 h-10 text-white" fill="currentColor" />
+                <Crown className="w-10 h-10" fill="currentColor" />
               </motion.div>
 
               <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
@@ -136,7 +136,7 @@ export function PaywallModal({
               <div className="mt-6 space-y-3">
                 <Button
                   size="lg"
-                  className="w-full h-12 rounded-xl text-base font-semibold bg-gradient-to-r from-primary to-emerald-600 hover:from-primary/90 hover:to-emerald-600/90 shadow-lg shadow-primary/25"
+                  className="w-full h-12 rounded-xl text-base font-semibold gradient-primary shadow-lg shadow-emerald-900/25"
                   onClick={upgrade}
                 >
                   <Crown className="w-4 h-4" />

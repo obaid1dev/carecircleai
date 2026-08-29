@@ -17,24 +17,28 @@ export const listMemories = createServerFn({ method: "GET" })
 
 export const addMemory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (v: unknown) =>
-      z
-        .object({
-          memory: z.string().min(1).max(500),
-          category: z.enum([
-            "general",
-            "preference",
-            "family",
-            "routine",
-            "health_context",
-            "communication",
-          ]),
-        })
-        .parse(v),
+  .inputValidator((v: unknown) =>
+    z
+      .object({
+        memory: z.string().min(1).max(500),
+        category: z.enum([
+          "general",
+          "preference",
+          "family",
+          "routine",
+          "health_context",
+          "communication",
+        ]),
+      })
+      .parse(v),
   )
   .handler(async ({ data, context }) => {
-    return createMemory(context.supabase, context.userId, data.memory, data.category as MemoryCategory);
+    return createMemory(
+      context.supabase,
+      context.userId,
+      data.memory,
+      data.category as MemoryCategory,
+    );
   });
 
 export const removeMemory = createServerFn({ method: "POST" })

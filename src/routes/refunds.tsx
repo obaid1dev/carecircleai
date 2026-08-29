@@ -5,7 +5,10 @@ export const Route = createFileRoute("/refunds")({
   head: () => ({
     meta: [
       { title: "Refund & Cancellation Policy — CareCircle" },
-      { name: "description", content: "Refund and cancellation policy for CareCircle subscriptions." },
+      {
+        name: "description",
+        content: "Refund and cancellation policy for CareCircle subscriptions.",
+      },
     ],
   }),
   component: RefundsPage,
@@ -31,8 +34,8 @@ function RefundsPage() {
 
           <h3 className="text-lg font-medium mt-4 mb-2">Free Plan</h3>
           <p className="text-muted-foreground leading-relaxed">
-            The free plan is available at no cost and includes limited features: 1 daily check-in per
-            day, up to 3 medications, 1 appointment, and up to 10 AI conversations per day.
+            The free plan is available at no cost and includes limited features: 1 daily check-in
+            per day, up to 3 medications, 1 appointment, and up to 10 AI conversations per day.
           </p>
 
           <h3 className="text-lg font-medium mt-4 mb-2">CareCircleAI Pro — Monthly</h3>
@@ -60,14 +63,14 @@ function RefundsPage() {
 
         <section>
           <h2 className="text-xl font-semibold mb-3">4. After Cancellation</h2>
-          <p className="text-muted-foreground leading-relaxed">
-            Once your subscription ends:
-          </p>
+          <p className="text-muted-foreground leading-relaxed">Once your subscription ends:</p>
           <ul className="list-disc list-inside text-muted-foreground leading-relaxed space-y-2">
             <li>Your account will revert to the free plan</li>
             <li>You will retain access to your data within free plan limits</li>
-            <li>If you exceed free plan limits (e.g., more than 3 medications), you will not be able
-              to add more until you reduce your usage or resubscribe</li>
+            <li>
+              If you exceed free plan limits (e.g., more than 3 medications), you will not be able
+              to add more until you reduce your usage or resubscribe
+            </li>
             <li>Your conversation history, memories, and check-in data remain intact</li>
           </ul>
         </section>
@@ -79,8 +82,8 @@ function RefundsPage() {
             offer refunds within a certain number of days of purchase, or on a case-by-case basis.]
           </p>
           <p className="text-muted-foreground leading-relaxed">
-            If you believe you have been charged incorrectly, please contact us so we can investigate
-            and resolve the issue.
+            If you believe you have been charged incorrectly, please contact us so we can
+            investigate and resolve the issue.
           </p>
         </section>
 

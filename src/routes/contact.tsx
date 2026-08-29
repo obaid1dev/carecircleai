@@ -30,10 +30,7 @@ function ContactPage() {
           <h2 className="text-xl font-semibold mb-3">Email</h2>
           <p className="text-muted-foreground leading-relaxed">
             You can reach us at:{" "}
-            <a
-              href="mailto:help.carecircle@gmail.com"
-              className="text-primary underline"
-            >
+            <a href="mailto:help.carecircle@gmail.com" className="text-primary underline">
               help.carecircle@gmail.com
             </a>
           </p>

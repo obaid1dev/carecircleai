@@ -9,18 +9,18 @@ export const Route = createFileRoute("/api/paddle/portal")({
     handlers: {
       POST: async ({ request }) => {
         if (!PADDLE_API_KEY) {
-          return new Response(
-            JSON.stringify({ error: "Paddle API key not configured" }),
-            { status: 500, headers: { "content-type": "application/json" } },
-          );
+          return new Response(JSON.stringify({ error: "Paddle API key not configured" }), {
+            status: 500,
+            headers: { "content-type": "application/json" },
+          });
         }
 
         const user = await getUserFromRequest(request);
         if (!user) {
-          return new Response(
-            JSON.stringify({ error: "unauthorized" }),
-            { status: 401, headers: { "content-type": "application/json" } },
-          );
+          return new Response(JSON.stringify({ error: "unauthorized" }), {
+            status: 401,
+            headers: { "content-type": "application/json" },
+          });
         }
 
         // Look up the paddle_customer_id from Supabase
@@ -32,7 +32,10 @@ export const Route = createFileRoute("/api/paddle/portal")({
 
         if (subError || !sub?.paddle_customer_id) {
           return new Response(
-            JSON.stringify({ error: "no_paddle_customer", message: "No Paddle customer found for this account." }),
+            JSON.stringify({
+              error: "no_paddle_customer",
+              message: "No Paddle customer found for this account.",
+            }),
             { status: 404, headers: { "content-type": "application/json" } },
           );
         }
@@ -59,12 +62,15 @@ export const Route = createFileRoute("/api/paddle/portal")({
           const body = await response.text();
           console.error(`[Paddle Portal] API error ${response.status}: ${body}`);
           return new Response(
-            JSON.stringify({ error: "paddle_api_error", message: "Failed to create portal session." }),
+            JSON.stringify({
+              error: "paddle_api_error",
+              message: "Failed to create portal session.",
+            }),
             { status: 502, headers: { "content-type": "application/json" } },
           );
         }
 
-        const result = await response.json() as {
+        const result = (await response.json()) as {
           data?: { url?: string };
         };
 
@@ -72,15 +78,18 @@ export const Route = createFileRoute("/api/paddle/portal")({
         if (!portalUrl) {
           console.error("[Paddle Portal] No URL in response:", JSON.stringify(result));
           return new Response(
-            JSON.stringify({ error: "no_portal_url", message: "Portal session created but no URL returned." }),
+            JSON.stringify({
+              error: "no_portal_url",
+              message: "Portal session created but no URL returned.",
+            }),
             { status: 502, headers: { "content-type": "application/json" } },
           );
         }
 
-        return new Response(
-          JSON.stringify({ url: portalUrl }),
-          { status: 200, headers: { "content-type": "application/json" } },
-        );
+        return new Response(JSON.stringify({ url: portalUrl }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
       },
     },
   },

@@ -62,10 +62,7 @@ But do NOT follow this as a rigid script. If the user jumps to a topic, follow t
 - Do NOT use the phrase "I'm here with you" at the start of every message.
 - Do NOT ask questions you already asked.`;
 
-export function buildSystemPrompt(
-  userName?: string | null,
-  memoryContext?: string,
-): string {
+export function buildSystemPrompt(userName?: string | null, memoryContext?: string): string {
   const parts: string[] = [CORE_PROMPT];
 
   if (userName) {

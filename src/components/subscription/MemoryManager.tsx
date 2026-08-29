@@ -31,6 +31,8 @@ const CATEGORIES = [
   { value: "communication", label: "Communication" },
 ] as const;
 
+type MemoryCategory = (typeof CATEGORIES)[number]["value"];
+
 const CATEGORY_COLORS: Record<string, string> = {
   general: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
   preference: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
@@ -52,7 +54,8 @@ export function MemoryManager() {
   });
 
   const addMut = useMutation({
-    mutationFn: () => addMemory({ data: { memory: newMemory, category: newCategory as any } }),
+    mutationFn: () =>
+      addMemory({ data: { memory: newMemory, category: newCategory as MemoryCategory } }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["memories"] });
       setNewMemory("");
@@ -82,8 +85,8 @@ export function MemoryManager() {
     <Card className="glass rounded-2xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
-          <span className="inline-flex w-8 h-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 shadow-md shadow-purple-700/25">
-            <Brain className="w-4 h-4 text-white" />
+          <span className="inline-flex w-9 h-9 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+            <Brain className="w-4 h-4" />
           </span>
           AI Memory
         </CardTitle>
@@ -129,7 +132,8 @@ export function MemoryManager() {
           <p className="text-sm text-muted-foreground py-4">Loading memories...</p>
         ) : memories.length === 0 ? (
           <p className="text-sm text-muted-foreground py-4">
-            No memories yet. CareCircle will automatically remember useful details from your conversations, or you can add them manually above.
+            No memories yet. CareCircle will automatically remember useful details from your
+            conversations, or you can add them manually above.
           </p>
         ) : (
           <div className="space-y-2">
@@ -167,7 +171,9 @@ export function MemoryManager() {
           <div className="pt-2 border-t border-border/60">
             {confirmClear ? (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-destructive">Clear all {memories.length} memories?</span>
+                <span className="text-sm text-destructive">
+                  Clear all {memories.length} memories?
+                </span>
                 <Button
                   size="sm"
                   variant="destructive"
@@ -176,11 +182,7 @@ export function MemoryManager() {
                 >
                   Yes, clear all
                 </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setConfirmClear(false)}
-                >
+                <Button size="sm" variant="ghost" onClick={() => setConfirmClear(false)}>
                   <X className="w-3.5 h-3.5" />
                 </Button>
               </div>

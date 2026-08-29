@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
@@ -6,10 +6,7 @@ import { Check, X, Crown, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BillingToggle } from "./BillingToggle";
 import { cn } from "@/lib/utils";
-import { handleUpgrade } from "@/lib/subscription/paddle";
-import { toast } from "sonner";
 import type { BillingInterval, PlanDefinition } from "@/lib/subscription/plans";
-import { useSubscriptionContext } from "@/lib/subscription/subscription-provider";
 
 interface PricingCardProps {
   plan: PlanDefinition;
@@ -20,14 +17,6 @@ interface PricingCardProps {
 
 export function PricingCard({ plan, billing, onBillingChange, index }: PricingCardProps) {
   const isPro = plan.id === "pro";
-  const { paddleCustomerId } = useSubscriptionContext();
-
-  const onUpgrade = async () => {
-    const result = await handleUpgrade(billing, paddleCustomerId);
-    if (result.status === "not_configured") {
-      toast.info("Secure checkout is coming soon. You'll be able to upgrade very shortly.");
-    }
-  };
 
   return (
     <motion.div
@@ -47,7 +36,7 @@ export function PricingCard({ plan, billing, onBillingChange, index }: PricingCa
         {isPro && (
           <>
             <div className="absolute -inset-1 rounded-[26px] bg-gradient-to-br from-primary/40 to-accent-foreground/30 blur-lg -z-10" />
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 rounded-full bg-gradient-to-r from-primary to-emerald-600 px-3.5 py-1 text-xs font-semibold text-white shadow-md shadow-primary/30">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 rounded-full gradient-primary text-primary-foreground px-3.5 py-1 text-xs font-semibold shadow-md shadow-emerald-900/25">
               <Star className="w-3.5 h-3.5 fill-current" />
               Most Popular
             </div>
@@ -101,12 +90,14 @@ export function PricingCard({ plan, billing, onBillingChange, index }: PricingCa
           <div className="mt-7">
             {isPro ? (
               <Button
+                asChild
                 size="lg"
-                onClick={onUpgrade}
-                className="w-full h-12 rounded-xl text-base font-semibold bg-gradient-to-r from-primary to-emerald-600 hover:from-primary/90 hover:to-emerald-600/90 shadow-lg shadow-primary/25"
+                className="w-full h-12 rounded-xl text-base font-semibold gradient-primary shadow-lg shadow-emerald-900/25"
               >
-                <Crown className="w-4 h-4" />
-                Upgrade to Pro
+                <Link to="/auth">
+                  <Crown className="w-4 h-4" />
+                  Upgrade to Pro
+                </Link>
               </Button>
             ) : (
               <Button

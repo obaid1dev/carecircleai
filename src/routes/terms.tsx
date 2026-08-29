@@ -13,25 +13,22 @@ export const Route = createFileRoute("/terms")({
 
 function TermsPage() {
   return (
-    <PublicPageLayout
-      title="Terms of Service"
-      description="Effective date: August 21, 2026"
-    >
+    <PublicPageLayout title="Terms of Service" description="Effective date: August 21, 2026">
       <div className="prose prose-neutral dark:prose-invert max-w-none space-y-8 text-foreground">
         <section>
           <h2 className="text-xl font-semibold mb-3">1. Acceptance of Terms</h2>
           <p className="text-muted-foreground leading-relaxed">
-            By accessing or using CareCircle ("the Service"), you agree to be bound by these Terms of
-            Service ("Terms"). If you do not agree to these Terms, do not use the Service.
+            By accessing or using CareCircle ("the Service"), you agree to be bound by these Terms
+            of Service ("Terms"). If you do not agree to these Terms, do not use the Service.
           </p>
         </section>
 
         <section>
           <h2 className="text-xl font-semibold mb-3">2. Description of CareCircle</h2>
           <p className="text-muted-foreground leading-relaxed">
-            CareCircle is an AI-powered care companion application designed to help families coordinate
-            care for their elderly loved ones. The Service provides features including daily AI
-            check-ins, medication tracking, appointment management, family and caregiver
+            CareCircle is an AI-powered care companion application designed to help families
+            coordinate care for their elderly loved ones. The Service provides features including
+            daily AI check-ins, medication tracking, appointment management, family and caregiver
             coordination, and an AI conversational companion.
           </p>
         </section>
@@ -41,8 +38,8 @@ function TermsPage() {
           <p className="text-muted-foreground leading-relaxed">
             To use CareCircle, you must create an account. You are responsible for maintaining the
             confidentiality of your account credentials and for all activity that occurs under your
-            account. You agree to provide accurate and complete information during registration and to
-            keep your information up to date.
+            account. You agree to provide accurate and complete information during registration and
+            to keep your information up to date.
           </p>
         </section>
 
@@ -57,9 +54,7 @@ function TermsPage() {
 
         <section>
           <h2 className="text-xl font-semibold mb-3">5. Acceptable Use</h2>
-          <p className="text-muted-foreground leading-relaxed">
-            You agree not to:
-          </p>
+          <p className="text-muted-foreground leading-relaxed">You agree not to:</p>
           <ul className="list-disc list-inside text-muted-foreground leading-relaxed space-y-2">
             <li>Use the Service for any unlawful purpose</li>
             <li>Attempt to gain unauthorized access to any part of the Service</li>
@@ -91,13 +86,13 @@ function TermsPage() {
             medical advice, and any AI-generated responses should not be considered medical advice.
           </p>
           <p className="text-muted-foreground leading-relaxed">
-            Always consult a qualified healthcare professional for medical concerns. If you or someone
-            you care for is experiencing a medical emergency, call your local emergency services
-            immediately.
+            Always consult a qualified healthcare professional for medical concerns. If you or
+            someone you care for is experiencing a medical emergency, call your local emergency
+            services immediately.
           </p>
           <p className="text-muted-foreground leading-relaxed">
-            CareCircle is not a replacement for professional medical care, and nothing in the Service
-            should be interpreted as such.
+            CareCircle is not a replacement for professional medical care, and nothing in the
+            Service should be interpreted as such.
           </p>
         </section>
 
@@ -106,9 +101,9 @@ function TermsPage() {
 
           <h3 className="text-lg font-medium mt-4 mb-2">Daily Check-Ins</h3>
           <p className="text-muted-foreground leading-relaxed">
-            AI-powered daily check-ins are conversational interactions designed to help track general
-            wellbeing. They are not clinical assessments and should not be used to make medical
-            decisions.
+            AI-powered daily check-ins are conversational interactions designed to help track
+            general wellbeing. They are not clinical assessments and should not be used to make
+            medical decisions.
           </p>
 
           <h3 className="text-lg font-medium mt-4 mb-2">Medication Tracking</h3>
@@ -126,9 +121,9 @@ function TermsPage() {
 
           <h3 className="text-lg font-medium mt-4 mb-2">AI Companion</h3>
           <p className="text-muted-foreground leading-relaxed">
-            The AI companion feature provides conversational interaction and may remember information
-            across sessions. While the AI is designed to be helpful and supportive, it is not a
-            substitute for human companionship, therapy, or professional care.
+            The AI companion feature provides conversational interaction and may remember
+            information across sessions. While the AI is designed to be helpful and supportive, it
+            is not a substitute for human companionship, therapy, or professional care.
           </p>
 
           <h3 className="text-lg font-medium mt-4 mb-2">Family and Caregiver Features</h3>
@@ -163,9 +158,9 @@ function TermsPage() {
 
           <h3 className="text-lg font-medium mt-4 mb-2">Cancellation</h3>
           <p className="text-muted-foreground leading-relaxed">
-            You may cancel your subscription at any time. Cancellation takes effect at the end of the
-            current billing period. You will retain access to Pro features until that time. Please
-            refer to our{" "}
+            You may cancel your subscription at any time. Cancellation takes effect at the end of
+            the current billing period. You will retain access to Pro features until that time.
+            Please refer to our{" "}
             <a href="/refunds" className="text-primary underline">
               Refund &amp; Cancellation Policy
             </a>{" "}
@@ -178,8 +173,8 @@ function TermsPage() {
           <p className="text-muted-foreground leading-relaxed">
             The Service, including its design, code, features, and content (excluding user-generated
             content), is owned by CareCircle and protected by intellectual property laws. You are
-            granted a limited, non-exclusive, non-transferable license to use the Service for personal,
-            non-commercial purposes.
+            granted a limited, non-exclusive, non-transferable license to use the Service for
+            personal, non-commercial purposes.
           </p>
         </section>
 
@@ -196,9 +191,10 @@ function TermsPage() {
         <section>
           <h2 className="text-xl font-semibold mb-3">12. Service Availability</h2>
           <p className="text-muted-foreground leading-relaxed">
-            We strive to keep CareCircle available at all times, but we do not guarantee uninterrupted
-            access. The Service may be temporarily unavailable due to maintenance, updates, or factors
-            beyond our control. We are not liable for any downtime or loss of access.
+            We strive to keep CareCircle available at all times, but we do not guarantee
+            uninterrupted access. The Service may be temporarily unavailable due to maintenance,
+            updates, or factors beyond our control. We are not liable for any downtime or loss of
+            access.
           </p>
         </section>
 
@@ -207,8 +203,8 @@ function TermsPage() {
           <p className="text-muted-foreground leading-relaxed">
             To the maximum extent permitted by law, CareCircle shall not be liable for any indirect,
             incidental, special, consequential, or punitive damages, or any loss of profits or
-            revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or
-            other intangible losses resulting from your use of the Service.
+            revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill,
+            or other intangible losses resulting from your use of the Service.
           </p>
           <p className="text-muted-foreground leading-relaxed">
             In no event shall our total liability exceed the amount you paid us in the twelve (12)

@@ -105,8 +105,10 @@ function Family() {
         className="flex flex-col sm:flex-row sm:items-end justify-between gap-3"
       >
         <div>
-          <p className="text-muted-foreground">Family dashboard</p>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+            Family dashboard
+          </p>
+          <h1 className="text-3xl font-bold tracking-tight mt-1">
             How <span className="text-gradient">{profile.data?.name || "your loved one"}</span> is
             doing
           </h1>
@@ -131,19 +133,29 @@ function Family() {
                 a.severity === "high"
                   ? "border-l-destructive bg-destructive/5"
                   : a.severity === "medium"
-                    ? "border-l-accent bg-accent/5"
-                    : "border-l-warning bg-warning/5"
+                    ? "border-l-warning bg-warning/5"
+                    : "border-l-info bg-info/5"
               }`}
             >
               <CardContent className="p-4 flex items-start gap-3">
                 <AlertTriangle
-                  className={`w-5 h-5 mt-0.5 ${
-                    a.severity === "high" ? "text-destructive" : "text-accent"
+                  aria-hidden="true"
+                  className={`w-5 h-5 mt-0.5 shrink-0 ${
+                    a.severity === "high" ? "text-destructive" : "text-warning"
                   }`}
                 />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="capitalize">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge
+                      variant={
+                        a.severity === "high"
+                          ? "destructive"
+                          : a.severity === "medium"
+                            ? "warning"
+                            : "info"
+                      }
+                      className="capitalize"
+                    >
                       {a.severity} · {a.alert_type}
                     </Badge>
                     <span className="text-xs text-muted-foreground">
@@ -152,7 +164,13 @@ function Family() {
                   </div>
                   <p className="mt-1">{a.message}</p>
                 </div>
-                <Button size="icon" variant="ghost" onClick={() => dismiss.mutate(a.id)}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => dismiss.mutate(a.id)}
+                  aria-label="Dismiss alert"
+                  className="shrink-0 -mr-1.5 rounded-full"
+                >
                   <X className="w-4 h-4" />
                 </Button>
               </CardContent>
@@ -212,10 +230,10 @@ function Family() {
         >
           <Card className="glass rounded-2xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <span className="inline-flex w-8 h-8 items-center justify-center rounded-lg gradient-primary shadow-md shadow-emerald-700/25">
-                  <TrendingUp className="w-4 h-4 text-white" />
-                </span>{" "}
+              <CardTitle className="flex items-center gap-2.5">
+                <span className="inline-flex w-9 h-9 shrink-0 items-center justify-center rounded-xl gradient-primary text-primary-foreground shadow-md shadow-emerald-900/20">
+                  <TrendingUp className="w-4 h-4" />
+                </span>
                 Mood trend (last {chartData.length} days)
               </CardTitle>
             </CardHeader>
@@ -225,31 +243,50 @@ function Family() {
                 description="Mood trends and deeper wellbeing analysis for your loved one."
               >
                 {chartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                      <XAxis dataKey="date" stroke="var(--color-muted-foreground)" fontSize={12} />
-                      <YAxis
-                        domain={[0, 10]}
-                        stroke="var(--color-muted-foreground)"
-                        fontSize={12}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          background: "var(--color-card)",
-                          border: "1px solid var(--color-border)",
-                          borderRadius: 8,
-                        }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="mood"
-                        stroke="var(--color-primary)"
-                        strokeWidth={3}
-                        dot={{ r: 4 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <div
+                    role="img"
+                    aria-label={`Line chart of mood scores over the last ${chartData.length} days`}
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                        <XAxis
+                          dataKey="date"
+                          stroke="var(--color-muted-foreground)"
+                          fontSize={12}
+                          tickLine={false}
+                          axisLine={false}
+                          dy={8}
+                        />
+                        <YAxis
+                          domain={[0, 10]}
+                          stroke="var(--color-muted-foreground)"
+                          fontSize={12}
+                          tickLine={false}
+                          axisLine={false}
+                          width={28}
+                        />
+                        <Tooltip
+                          cursor={{ stroke: "var(--color-primary)", strokeOpacity: 0.25 }}
+                          contentStyle={{
+                            background: "var(--color-popover)",
+                            border: "1px solid var(--color-border)",
+                            borderRadius: 12,
+                            boxShadow: "var(--shadow-lift)",
+                            color: "var(--color-popover-foreground)",
+                          }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="mood"
+                          stroke="var(--color-primary)"
+                          strokeWidth={2.5}
+                          dot={{ r: 3, strokeWidth: 0, fill: "var(--color-primary)" }}
+                          activeDot={{ r: 5 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
                 ) : (
                   <p className="text-muted-foreground text-center pt-12">
                     No check-ins yet. Start one to see mood trends here.
@@ -312,18 +349,24 @@ function Family() {
             {medList.map((m) => (
               <div
                 key={m.id}
-                className="flex items-center justify-between p-3 rounded-xl bg-secondary/60"
+                className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/70"
               >
-                <div>
-                  <p className="font-medium">{m.medicine_name}</p>
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{m.medicine_name}</p>
                   <p className="text-xs text-muted-foreground">
                     {m.dosage ? `${m.dosage} · ` : ""}
                     {m.reminder_time?.slice(0, 5)}
                   </p>
                 </div>
-                <Badge variant={m.taken_today ? "default" : "outline"}>
-                  {m.taken_today ? "Taken today" : "Not yet"}
-                </Badge>
+                {m.taken_today ? (
+                  <Badge variant="success" className="shrink-0">
+                    Taken today
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="shrink-0">
+                    Not yet
+                  </Badge>
+                )}
               </div>
             ))}
             <Button asChild variant="outline" className="w-full mt-2 rounded-xl">
@@ -350,14 +393,14 @@ function Stat({
   return (
     <Card className="glass rounded-2xl card-hover">
       <CardContent className="p-5">
-        <div className="flex items-center gap-2 text-muted-foreground text-sm">
-          <span className="inline-flex w-7 h-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <div className="flex items-center gap-2.5 text-muted-foreground text-sm font-medium">
+          <span className="inline-flex w-8 h-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
             {icon}
           </span>
           {label}
         </div>
-        <p className="text-2xl font-bold mt-2">{value}</p>
-        <p className="text-xs text-muted-foreground mt-1">{hint}</p>
+        <p className="font-heading text-2xl font-bold tracking-tight mt-2.5">{value}</p>
+        <p className="text-sm text-muted-foreground mt-1">{hint}</p>
       </CardContent>
     </Card>
   );

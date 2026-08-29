@@ -5,7 +5,10 @@ export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
       { title: "About CareCircle" },
-      { name: "description", content: "Learn about CareCircle, an AI-powered care companion for seniors." },
+      {
+        name: "description",
+        content: "Learn about CareCircle, an AI-powered care companion for seniors.",
+      },
     ],
   }),
   component: AboutPage,
@@ -34,9 +37,7 @@ function AboutPage() {
 
         <section>
           <h2 className="text-xl font-semibold mb-3">Who is CareCircle For?</h2>
-          <p className="text-muted-foreground leading-relaxed">
-            CareCircle is designed for:
-          </p>
+          <p className="text-muted-foreground leading-relaxed">CareCircle is designed for:</p>
           <ul className="list-disc list-inside text-muted-foreground leading-relaxed space-y-2">
             <li>
               <strong>Seniors</strong> who want a friendly, daily companion that helps them stay on
@@ -85,8 +86,8 @@ function AboutPage() {
 
           <h3 className="text-lg font-medium mt-4 mb-2">AI Companion</h3>
           <p className="text-muted-foreground leading-relaxed">
-            The AI companion remembers conversations and personal details across sessions, creating a
-            more natural and personalized experience over time.
+            The AI companion remembers conversations and personal details across sessions, creating
+            a more natural and personalized experience over time.
           </p>
 
           <h3 className="text-lg font-medium mt-4 mb-2">Smart Alerts</h3>

@@ -72,20 +72,15 @@ export const Route = createFileRoute("/api/chat")({
         // Save the latest user message to the database.
         const lastUserMsg = messages.filter((m) => m.role === "user").at(-1);
         if (lastUserMsg) {
-          const text = lastUserMsg.parts
-            ?.map((p) => (p.type === "text" ? p.text : ""))
-            .join("") ?? "";
+          const text =
+            lastUserMsg.parts?.map((p) => (p.type === "text" ? p.text : "")).join("") ?? "";
           if (text.trim()) {
             await saveMessage(user.supabase, user.userId, convId, "user", text);
           }
         }
 
         // Load conversation history from database for model context.
-        const history = await getConversationHistory(
-          user.supabase,
-          user.userId,
-          convId,
-        );
+        const history = await getConversationHistory(user.supabase, user.userId, convId);
 
         // Build model messages from database history (not from client).
         const modelHistory = history.map((m) => ({
@@ -115,20 +110,21 @@ export const Route = createFileRoute("/api/chat")({
             }
 
             // Extract memories asynchronously (don't block response).
-            const allMessages = history.concat(
-              lastUserMsg
-                ? [{
-                    role: "user" as const,
-                    content: lastUserMsg.parts
-                      ?.map((p) => (p.type === "text" ? p.text : ""))
-                      .join("") ?? "",
-                  }]
-                : [],
-            ).concat(
-              text?.trim()
-                ? [{ role: "assistant" as const, content: text }]
-                : [],
-            );
+            const allMessages = history
+              .concat(
+                lastUserMsg
+                  ? [
+                      {
+                        role: "user" as const,
+                        content:
+                          lastUserMsg.parts
+                            ?.map((p) => (p.type === "text" ? p.text : ""))
+                            .join("") ?? "",
+                      },
+                    ]
+                  : [],
+              )
+              .concat(text?.trim() ? [{ role: "assistant" as const, content: text }] : []);
             void extractAndStoreMemories(user.supabase, user.userId, allMessages);
           },
         });

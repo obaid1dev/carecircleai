@@ -8,6 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { MotionConfig } from "framer-motion";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -87,6 +88,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Daily AI check-ins for elderly care. Family dashboard, medication reminders, and wellbeing monitoring.",
       },
       { name: "author", content: "CareCircle" },
+      { name: "theme-color", content: "#f4f8f5", media: "(prefers-color-scheme: light)" },
+      { name: "theme-color", content: "#0b1310", media: "(prefers-color-scheme: dark)" },
       { property: "og:title", content: "CareCircle" },
       {
         property: "og:description",
@@ -101,6 +104,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Source+Sans+3:ital,wght@0,300..700;1,400&display=swap",
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "apple-touch-icon", href: "/logo.png" },
@@ -133,10 +142,12 @@ function RootComponent() {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <SubscriptionProvider>
-          <Outlet />
-          <Toaster />
-        </SubscriptionProvider>
+        <MotionConfig reducedMotion="user">
+          <SubscriptionProvider>
+            <Outlet />
+            <Toaster />
+          </SubscriptionProvider>
+        </MotionConfig>
       </QueryClientProvider>
     </ThemeProvider>
   );

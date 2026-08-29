@@ -17,10 +17,7 @@ function getSupabaseAdmin() {
  * Verify Paddle webhook signature (HMAC-SHA256).
  * Paddle v3 signs the raw body with the endpoint secret key.
  */
-async function verifySignature(
-  body: string,
-  paddleSignature: string,
-): Promise<boolean> {
+async function verifySignature(body: string, paddleSignature: string): Promise<boolean> {
   if (!WEBHOOK_SECRET) {
     console.error("[Paddle Webhook] PADDLE_WEBHOOK_SECRET is not set — rejecting request");
     return false;
@@ -78,27 +75,23 @@ async function handleSubscriptionCreated(data: SubscriptionData) {
     .maybeSingle();
 
   if (!existing) {
-    console.warn(
-      `[Paddle Webhook] No user found for paddle_customer_id=${data.customer_id}`,
-    );
+    console.warn(`[Paddle Webhook] No user found for paddle_customer_id=${data.customer_id}`);
     return;
   }
 
-  const { error } = await supabase
-    .from("subscriptions")
-    .upsert(
-      {
-        user_id: existing.user_id,
-        paddle_subscription_id: data.id,
-        paddle_customer_id: data.customer_id,
-        paddle_price_id: data.price_id,
-        plan: plan || "free",
-        status: data.status === "active" ? "active" : "inactive",
-        current_period_end: data.current_period_end,
-        cancel_at_period_end: data.cancel_at_period_end,
-      },
-      { onConflict: "user_id" },
-    );
+  const { error } = await supabase.from("subscriptions").upsert(
+    {
+      user_id: existing.user_id,
+      paddle_subscription_id: data.id,
+      paddle_customer_id: data.customer_id,
+      paddle_price_id: data.price_id,
+      plan: plan || "free",
+      status: data.status === "active" ? "active" : "inactive",
+      current_period_end: data.current_period_end,
+      cancel_at_period_end: data.cancel_at_period_end,
+    },
+    { onConflict: "user_id" },
+  );
 
   if (error) {
     console.error("[Paddle Webhook] Failed to upsert subscription:", error.message);
@@ -180,7 +173,10 @@ async function handleTransactionCompleted(data: Record<string, unknown>) {
     .eq("paddle_subscription_id", subscriptionId);
 
   if (error) {
-    console.error("[Paddle Webhook] Failed to activate subscription on transaction:", error.message);
+    console.error(
+      "[Paddle Webhook] Failed to activate subscription on transaction:",
+      error.message,
+    );
   }
 }
 

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Crown, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,8 +25,8 @@ export function ProGate({
 
   return (
     <div className="flex h-full flex-col items-center justify-center py-10 text-center">
-      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-emerald-600 shadow-lg shadow-primary/30">
-        <Crown className="h-7 w-7 text-white" fill="currentColor" />
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl gradient-primary text-primary-foreground shadow-lg shadow-emerald-900/25">
+        <Crown className="h-7 w-7" fill="currentColor" />
       </div>
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="mt-1 max-w-xs text-sm text-muted-foreground">{description}</p>

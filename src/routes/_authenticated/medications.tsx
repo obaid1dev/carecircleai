@@ -84,12 +84,12 @@ function MedsPage() {
         className="flex items-center justify-between"
       >
         <div className="flex items-center gap-3">
-          <span className="inline-flex w-11 h-11 items-center justify-center rounded-2xl gradient-primary shadow-lg shadow-emerald-700/25">
-            <Pill className="w-5 h-5 text-white" />
+          <span className="inline-flex w-11 h-11 shrink-0 items-center justify-center rounded-2xl gradient-primary text-primary-foreground shadow-lg shadow-emerald-900/20">
+            <Pill className="w-5 h-5" />
           </span>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Medications</h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {taken} of {list.length} taken today
             </p>
           </div>
@@ -157,15 +157,21 @@ function MedsPage() {
               </p>
             )}
             {list.map((m) => (
-              <div key={m.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/60">
+              <div
+                key={m.id}
+                className="flex items-center gap-3 p-3 rounded-xl bg-muted/70 transition-colors duration-200 hover:bg-muted"
+              >
                 <Checkbox
                   checked={m.taken_today}
                   onCheckedChange={(v) => toggle.mutate({ medication_id: m.id, taken: Boolean(v) })}
-                  className="w-6 h-6"
+                  className="w-6 h-6 shrink-0 cursor-pointer"
+                  aria-label={`Mark ${m.medicine_name} as taken`}
                 />
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <p
-                    className={`font-medium text-lg ${m.taken_today ? "line-through opacity-60" : ""}`}
+                    className={`font-medium text-lg truncate ${
+                      m.taken_today ? "line-through text-muted-foreground" : ""
+                    }`}
                   >
                     {m.medicine_name}
                   </p>
@@ -174,7 +180,13 @@ function MedsPage() {
                     {m.reminder_time?.slice(0, 5)}
                   </p>
                 </div>
-                <Button size="icon" variant="ghost" onClick={() => del.mutate(m.id)}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => del.mutate(m.id)}
+                  aria-label={`Delete ${m.medicine_name}`}
+                  className="shrink-0 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors duration-200"
+                >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>

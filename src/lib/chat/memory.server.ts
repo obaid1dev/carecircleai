@@ -4,12 +4,7 @@ import type { Database } from "@/integrations/supabase/types";
 type Supabase = SupabaseClient<Database>;
 
 export type MemoryCategory =
-  | "general"
-  | "preference"
-  | "family"
-  | "routine"
-  | "health_context"
-  | "communication";
+  "general" | "preference" | "family" | "routine" | "health_context" | "communication";
 
 export interface Memory {
   id: string;
@@ -19,10 +14,7 @@ export interface Memory {
   updated_at: string;
 }
 
-export async function getMemories(
-  supabase: Supabase,
-  userId: string,
-): Promise<Memory[]> {
+export async function getMemories(supabase: Supabase, userId: string): Promise<Memory[]> {
   const { data, error } = await supabase
     .from("memories")
     .select("id, memory, category, created_at, updated_at")
@@ -92,14 +84,8 @@ export async function deleteMemory(
   if (error) throw new Error(error.message);
 }
 
-export async function deleteAllMemories(
-  supabase: Supabase,
-  userId: string,
-): Promise<void> {
-  const { error } = await supabase
-    .from("memories")
-    .delete()
-    .eq("user_id", userId);
+export async function deleteAllMemories(supabase: Supabase, userId: string): Promise<void> {
+  const { error } = await supabase.from("memories").delete().eq("user_id", userId);
   if (error) throw new Error(error.message);
 }
 

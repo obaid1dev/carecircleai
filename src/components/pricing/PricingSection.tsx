@@ -6,7 +6,6 @@ import { PLANS, type BillingInterval } from "@/lib/subscription/plans";
 import { PricingCard } from "./PricingCard";
 import { ComparisonTable } from "./ComparisonTable";
 import { TrustBadges } from "./TrustBadges";
-import { PricingFaq } from "./PricingFaq";
 
 export function PricingSection() {
   const [billing, setBilling] = useState<BillingInterval>("monthly");
@@ -48,7 +47,6 @@ export function PricingSection() {
         </div>
 
         <TrustBadges />
-        <PricingFaq />
       </div>
     </section>
   );

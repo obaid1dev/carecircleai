@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter, Link, redirect } from "@tanstack/react-router";
+﻿import { createFileRoute, useRouter, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Mail, CheckCircle2 } from "lucide-react";
+import { Mail, CheckCircle2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 
@@ -35,6 +35,7 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [tab, setTab] = useState("signin");
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const [confirmedEmail, setConfirmedEmail] = useState("");
 
@@ -89,9 +90,7 @@ function AuthPage() {
       </div>
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center justify-center gap-2 font-semibold text-lg mb-6">
-          <span className="gradient-primary flex h-9 w-9 items-center justify-center rounded-xl shadow-lg shadow-emerald-700/30">
-            <Heart className="w-5 h-5 text-white" fill="currentColor" />
-          </span>
+          <img src="/logo.png" alt="CareCircle" className="h-9 w-9" />
           CareCircle
         </Link>
 
@@ -106,8 +105,8 @@ function AuthPage() {
             >
               <Card className="glass-strong rounded-3xl border-transparent shadow-2xl shadow-black/10 dark:shadow-black/40">
                 <CardHeader className="text-center pt-8">
-                  <div className="w-16 h-16 mx-auto mb-4 gradient-primary rounded-full flex items-center justify-center shadow-lg shadow-emerald-700/30">
-                    <CheckCircle2 className="w-8 h-8 text-white" />
+                  <div className="w-16 h-16 mx-auto mb-4 gradient-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg shadow-emerald-900/25">
+                    <CheckCircle2 className="w-8 h-8" />
                   </div>
                   <CardTitle>Check your email</CardTitle>
                   <CardDescription className="text-muted-foreground">
@@ -163,19 +162,33 @@ function AuthPage() {
                   <CardDescription>Sign in or create your account to continue.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Tabs defaultValue="signin">
-                    <TabsList className="grid grid-cols-2 w-full rounded-full bg-background/60 p-1 border border-border/50">
+                  <Tabs defaultValue="signin" value={tab} onValueChange={(v) => setTab(v)}>
+                    <TabsList className="relative grid grid-cols-2 w-full h-12 items-stretch rounded-full bg-background/60 p-1 border border-border/50">
                       <TabsTrigger
                         value="signin"
-                        className="rounded-full data-[state=active]:bg-gradient-to-br data-[state=active]:from-primary data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-emerald-700/25"
+                        className="relative rounded-full cursor-pointer data-[state=active]:text-primary-foreground"
                       >
-                        Sign in
+                        {tab === "signin" && (
+                          <motion.span
+                            layoutId="auth-tab-pill"
+                            className="absolute inset-0 rounded-full gradient-primary shadow-md shadow-emerald-900/20"
+                            transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                          />
+                        )}
+                        <span className="relative">Sign in</span>
                       </TabsTrigger>
                       <TabsTrigger
                         value="signup"
-                        className="rounded-full data-[state=active]:bg-gradient-to-br data-[state=active]:from-primary data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-emerald-700/25"
+                        className="relative rounded-full cursor-pointer data-[state=active]:text-primary-foreground"
                       >
-                        Sign up
+                        {tab === "signup" && (
+                          <motion.span
+                            layoutId="auth-tab-pill"
+                            className="absolute inset-0 rounded-full gradient-primary shadow-md shadow-emerald-900/20"
+                            transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                          />
+                        )}
+                        <span className="relative">Sign up</span>
                       </TabsTrigger>
                     </TabsList>
                     <TabsContent value="signin">

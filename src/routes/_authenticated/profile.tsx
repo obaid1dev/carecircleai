@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+﻿import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getProfile, updateProfile } from "@/lib/data.functions";
 import { motion } from "framer-motion";
-import { UserRound, Siren, HeartPulse, LogOut, CreditCard, ExternalLink, Loader2 } from "lucide-react";
+import {
+  UserRound,
+  Siren,
+  HeartPulse,
+  LogOut,
+  CreditCard,
+  ExternalLink,
+  Loader2,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { MemoryManager } from "@/components/subscription/MemoryManager";
@@ -81,9 +89,9 @@ function ProfilePage() {
         >
           <Card className="glass rounded-2xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <span className="inline-flex w-8 h-8 items-center justify-center rounded-lg gradient-primary shadow-md shadow-emerald-700/25">
-                  <UserRound className="w-4 h-4 text-white" />
+              <CardTitle className="flex items-center gap-2.5">
+                <span className="inline-flex w-8 h-8 items-center justify-center rounded-xl gradient-primary text-primary-foreground shadow-md shadow-emerald-900/20">
+                  <UserRound className="w-4 h-4" />
                 </span>{" "}
                 About you
               </CardTitle>
@@ -128,7 +136,7 @@ function ProfilePage() {
         >
           <Card className="glass rounded-2xl mt-4">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
+              <CardTitle className="flex items-center gap-2.5">
                 <span className="inline-flex w-8 h-8 items-center justify-center rounded-lg bg-warm text-warm-foreground shadow-md shadow-warm-foreground/10">
                   <Siren className="w-4 h-4" />
                 </span>{" "}
@@ -171,9 +179,9 @@ function ProfilePage() {
       >
         <Card className="glass rounded-2xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <span className="inline-flex w-8 h-8 items-center justify-center rounded-lg gradient-primary shadow-md shadow-emerald-700/25">
-                <CreditCard className="w-4 h-4 text-white" />
+            <CardTitle className="flex items-center gap-2.5">
+              <span className="inline-flex w-8 h-8 items-center justify-center rounded-xl gradient-primary text-primary-foreground shadow-md shadow-emerald-900/20">
+                <CreditCard className="w-4 h-4" />
               </span>{" "}
               Subscription
             </CardTitle>
@@ -183,7 +191,7 @@ function ProfilePage() {
               <div>
                 <p className="font-medium">
                   Current plan:{" "}
-                  <span className={isPro ? "text-emerald-600 dark:text-emerald-400" : ""}>
+                  <span className={isPro ? "text-primary font-semibold" : ""}>
                     {isPro ? PLANS.pro.name : PLANS.free.name}
                   </span>
                 </p>
@@ -195,9 +203,7 @@ function ProfilePage() {
                   </p>
                 )}
                 {!isPro && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {PLANS.free.tagline}
-                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">{PLANS.free.tagline}</p>
                 )}
               </div>
             </div>
@@ -239,7 +245,12 @@ function ProfilePage() {
             ) : (
               <Button
                 className="w-full rounded-xl"
-                onClick={() => openPaywall("Upgrade to CareCircleAI Pro", "Unlock unlimited access to all features.")}
+                onClick={() =>
+                  openPaywall(
+                    "Upgrade to CareCircleAI Pro",
+                    "Unlock unlimited access to all features.",
+                  )
+                }
               >
                 <CreditCard className="w-4 h-4" />
                 Upgrade to Pro

@@ -10,6 +10,17 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
+  --font-heading:
+    "Lexend", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    sans-serif;
+  --font-body:
+    "Source Sans 3", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
+  /* Semantic elevation scale — consistent across light/dark. */
+  --shadow-soft:
+    0 1px 2px rgb(12 24 17 / 0.05), 0 6px 20px -6px rgb(12 24 17 / 0.08);
+  --shadow-lift:
+    0 14px 36px -12px rgb(12 24 17 / 0.18), 0 3px 10px -2px rgb(12 24 17 / 0.07);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -26,9 +37,6 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
@@ -49,97 +57,104 @@
 
 :root {
   --radius: 1rem;
-  /* Light theme - cool neutrals, medical green primary */
-  --background: #f8fafc;
-  --foreground: #111827;
+  /* Light theme — sage-tinted neutrals, AA-compliant medical green primary.
+     Primary #2e8056 on white text = 4.84:1 (WCAG AA). */
+  --background: #f4f8f5;
+  --foreground: #101b14;
   --card: #ffffff;
-  --card-foreground: #111827;
+  --card-foreground: #101b14;
   --popover: #ffffff;
-  --popover-foreground: #111827;
-  --primary: #5bae7d;
+  --popover-foreground: #101b14;
+  --primary: #2e8056;
   --primary-foreground: #ffffff;
-  --secondary: #e5e7eb;
-  --secondary-foreground: #111827;
-  --muted: #f1f5f9;
-  --muted-foreground: #6b7280;
-  --accent: #e8f5e9;
-  --accent-foreground: #2e7d32;
-  --destructive: #ef4444;
+  --secondary: #e7ede8;
+  --secondary-foreground: #1a2921;
+  --muted: #edf2ee;
+  --muted-foreground: #4d5d53;
+  --accent: #e0efe4;
+  --accent-foreground: #1e5c3c;
+  --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --success: #22c55e;
+  --success: #15803d;
   --success-foreground: #ffffff;
-  --warning: #f59e0b;
-  --warning-foreground: #111827;
-  --info: #3b82f6;
+  --warning: #d97706;
+  --warning-foreground: #201200;
+  --info: #2563eb;
   --info-foreground: #ffffff;
   --warm: #fdf2e3;
-  --warm-foreground: #b45309;
-  --border: #e5e7eb;
-  --input: #e5e7eb;
-  --ring: #5bae7d;
+  --warm-foreground: #92400e;
+  --border: #dde6de;
+  --input: #cfdfd3;
+  --ring: #2e8056;
   --sidebar: #ffffff;
-  --sidebar-foreground: #111827;
-  --sidebar-primary: #5bae7d;
+  --sidebar-foreground: #101b14;
+  --sidebar-primary: #2e8056;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f1f5f9;
-  --sidebar-accent-foreground: #111827;
-  --sidebar-border: #e5e7eb;
-  --sidebar-ring: #5bae7d;
+  --sidebar-accent: #edf2ee;
+  --sidebar-accent-foreground: #101b14;
+  --sidebar-border: #dde6de;
+  --sidebar-ring: #2e8056;
 }
 
 .dark {
-  /* Dark theme - cool slate neutrals, no brown/warm grays */
-  --background: #0f172a;
-  --foreground: #f8fafc;
-  --card: #1e293b;
-  --card-foreground: #f8fafc;
-  --popover: #1e293b;
-  --popover-foreground: #f8fafc;
-  --primary: #5bae7d;
-  --primary-foreground: #0f172a;
-  --secondary: #334155;
-  --secondary-foreground: #f8fafc;
-  --muted: #334155;
-  --muted-foreground: #cbd5e1;
-  --accent: #1b3a2a;
-  --accent-foreground: #a7f3d0;
-  --destructive: #ef4444;
+  /* Dark theme — deep green-tinted slate, bright primary with dark text
+     (#08150e on #63bd88 ≈ 10:1). All pairings ≥ 4.5:1. */
+  --background: #0b1310;
+  --foreground: #e8f0ea;
+  --card: #131f19;
+  --card-foreground: #e8f0ea;
+  --popover: #16241d;
+  --popover-foreground: #e8f0ea;
+  --primary: #63bd88;
+  --primary-foreground: #08150e;
+  --secondary: #22332a;
+  --secondary-foreground: #e8f0ea;
+  --muted: #1a2820;
+  --muted-foreground: #a3b9ac;
+  --accent: #17301f;
+  --accent-foreground: #93dcae;
+  --destructive: #dc2626;
   --destructive-foreground: #ffffff;
   --success: #22c55e;
-  --success-foreground: #0f172a;
-  --warning: #f59e0b;
-  --warning-foreground: #0f172a;
-  --info: #3b82f6;
-  --info-foreground: #ffffff;
-  --warm: #2d2417;
+  --success-foreground: #052e16;
+  --warning: #fbbf24;
+  --warning-foreground: #271000;
+  --info: #60a5fa;
+  --info-foreground: #0b1220;
+  --warm: #2a2114;
   --warm-foreground: #f5c98e;
-  --border: #475569;
-  --input: #475569;
-  --ring: #5bae7d;
-  --sidebar: #1e293b;
-  --sidebar-foreground: #f8fafc;
-  --sidebar-primary: #5bae7d;
-  --sidebar-primary-foreground: #0f172a;
-  --sidebar-accent: #334155;
-  --sidebar-accent-foreground: #f8fafc;
-  --sidebar-border: #475569;
-  --sidebar-ring: #5bae7d;
+  --border: #26382e;
+  --input: #2c4034;
+  --ring: #63bd88;
+  --sidebar: #131f19;
+  --sidebar-foreground: #e8f0ea;
+  --sidebar-primary: #63bd88;
+  --sidebar-primary-foreground: #08150e;
+  --sidebar-accent: #22332a;
+  --sidebar-accent-foreground: #e8f0ea;
+  --sidebar-border: #26382e;
+  --sidebar-ring: #63bd88;
 }
 
 @layer base {
   * {
     border-color: var(--color-border);
   }
+  html {
+    scroll-behavior: smooth;
+    /* Hidden page scrollbar — scrolling still works via wheel/touch/keys. */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  html::-webkit-scrollbar {
+    display: none;
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family:
-      ui-sans-serif,
-      system-ui,
-      -apple-system,
-      "Segoe UI",
-      Roboto,
-      sans-serif;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -156,9 +171,36 @@
       );
     background-attachment: fixed;
   }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
   ::selection {
     background-color: color-mix(in srgb, var(--primary) 28%, transparent);
   }
+
+  /* Visible focus for keyboard users on every interactive element. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+/* Brand gradient built from the token so both themes stay AA-safe.
+   Declared as a first-class utility so state variants (hover:,
+   data-[status=active]:) compose with it. */
+@utility gradient-primary {
+  background-image: linear-gradient(
+    135deg,
+    var(--primary),
+    color-mix(in srgb, var(--primary) 76%, black)
+  );
 }
 
 @layer utilities {
@@ -175,14 +217,12 @@
     background-color: color-mix(in srgb, var(--card) 72%, transparent);
     backdrop-filter: blur(16px) saturate(150%);
     -webkit-backdrop-filter: blur(16px) saturate(150%);
-    border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
-    box-shadow:
-      0 10px 30px -12px rgb(0 0 0 / 0.14),
-      0 2px 8px rgb(0 0 0 / 0.04);
+    border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+    box-shadow: var(--shadow-soft);
   }
   .dark .glass {
     background-color: color-mix(in srgb, var(--card) 55%, transparent);
-    border-color: rgb(255 255 255 / 0.08);
+    border-color: rgb(255 255 255 / 0.06);
     box-shadow:
       0 12px 34px -14px rgb(0 0 0 / 0.55),
       0 2px 10px rgb(0 0 0 / 0.2);
@@ -192,25 +232,25 @@
     background-color: color-mix(in srgb, var(--card) 88%, transparent);
     backdrop-filter: blur(24px) saturate(160%);
     -webkit-backdrop-filter: blur(24px) saturate(160%);
-    border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
     box-shadow:
       0 20px 50px -18px rgb(0 0 0 / 0.18),
       0 2px 10px rgb(0 0 0 / 0.05);
   }
   .dark .glass-strong {
-    background-color: rgb(30 41 59 / 0.62);
-    border-color: rgb(255 255 255 / 0.08);
+    background-color: rgb(19 31 25 / 0.62);
+    border-color: rgb(255 255 255 / 0.06);
     box-shadow:
       0 20px 50px -18px rgb(0 0 0 / 0.6),
       0 2px 12px rgb(0 0 0 / 0.25);
   }
 
-  .gradient-primary {
-    background-image: linear-gradient(135deg, var(--primary), #10b981 130%);
-  }
-
   .text-gradient {
-    background-image: linear-gradient(120deg, var(--foreground) 20%, var(--primary));
+    background-image: linear-gradient(
+      120deg,
+      var(--foreground) 30%,
+      var(--primary)
+    );
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -223,9 +263,7 @@
   }
   .card-hover:hover {
     transform: translateY(-2px);
-    box-shadow:
-      0 18px 44px -16px rgb(0 0 0 / 0.2),
-      0 2px 10px rgb(0 0 0 / 0.05);
+    box-shadow: var(--shadow-lift);
   }
   .dark .card-hover:hover {
     box-shadow:
@@ -255,5 +293,19 @@
   }
   .animation-delay-4000 {
     animation-delay: 4s;
+  }
+
+  /* Respect users who prefer reduced motion. */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-blob,
+    .animation-delay-2000,
+    .animation-delay-4000 {
+      animation: none;
+    }
+    .card-hover,
+    .card-hover:hover {
+      transition: none;
+      transform: none;
+    }
   }
 }
